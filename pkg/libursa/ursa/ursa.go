@@ -11,6 +11,7 @@ import (
 	"unsafe"
 )
 
+// NewNonce creates random nonce
 func NewNonce() (string, error) {
 	var nonce unsafe.Pointer
 	defer C.free(nonce)
