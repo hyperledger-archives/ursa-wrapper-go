@@ -114,3 +114,16 @@ struct ExternError ursa_cl_credential_key_correctness_proof_from_json(const char
  */
 struct ExternError ursa_cl_blinded_credential_secrets_correctness_proof_from_json(const char *blinded_credential_secrets_correctness_proof_json,
                                                                          const void **blinded_credential_secrets_correctness_proof_p);
+
+/**
+ * Creates and returns blinded credential secrets from json.
+ *
+ * Note: Blinded credential secrets instance deallocation must be performed
+ * by calling ursa_cl_blinded_credential_secrets_free
+ *
+ * # Arguments
+ * * `blinded_credential_secrets_json` - Reference that contains blinded credential secret json.
+ * * `blinded_credential_secrets_p` - Reference that will contain blinded credential secret instance pointer.
+ */
+struct ExternError ursa_cl_blinded_credential_secrets_from_json(const char *blinded_credential_secrets_json,
+                                                       const void **blinded_credential_secrets_p);

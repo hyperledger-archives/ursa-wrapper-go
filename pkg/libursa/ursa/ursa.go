@@ -77,6 +77,20 @@ func CredentialKeyCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+//BlindedCredentialSecretsFromJSON creates and returns blinded credential secrets from json
+func BlindedCredentialSecretsFromJSON(jsn string) (unsafe.Pointer, error) {
+	var handle unsafe.Pointer
+	cjson := C.CString(jsn)
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_blinded_credential_secrets_from_json(cjson, &handle)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return handle, nil
+}
+
 func ursaError(msg string) error {
 	cMsg := C.CString(msg)
 	defer C.free(unsafe.Pointer(cMsg))
