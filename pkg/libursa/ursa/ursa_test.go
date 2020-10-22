@@ -40,3 +40,11 @@ func TestCredentialKeyCorrectnessProofFromJSON(t *testing.T) {
 		assert.Empty(t, correctnessProof)
 	})
 }
+
+func TestBlindedCredentialSecretsCorrectnessProofFromJSON(t *testing.T) {
+	t.Run("BlindedCredentialSecretsCorrectnessProofFromJSON", func(t *testing.T) {
+		correctnessProof, err := BlindedCredentialSecretsCorrectnessProofFromJSON("should error")
+		assert.NotEmpty(t, err)
+		assert.Empty(t, correctnessProof)
+	})
+}

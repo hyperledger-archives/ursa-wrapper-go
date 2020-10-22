@@ -48,6 +48,20 @@ func NonceFromJson(jsn string) (unsafe.Pointer, error) {
 
 	return handle, nil
 }
+// BlindedCredentialSecretsCorrectnessProofFromJSON creates and returns blinded credential secrets correctness proof json.
+func BlindedCredentialSecretsCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
+	var handle unsafe.Pointer
+	cjson := C.CString(jsn)
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_blinded_credential_secrets_correctness_proof_from_json(cjson, &handle)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return handle, nil
+}
+
 
 //CredentialKeyCorrectnessProofFromJSON creates and returns credential key correctness proof from json
 func CredentialKeyCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
