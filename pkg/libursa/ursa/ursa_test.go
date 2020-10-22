@@ -57,3 +57,12 @@ func TestBlindedCredentialSecretsFromJSON(t *testing.T) {
 	})
 	//	will test positive test case once C.ursa_cl_prover_blind_credential_secrets is wrapped
 }
+
+func TestCredentialPrivateKeyFromJSON(t *testing.T) {
+	t.Run("CredentialPrivateKeyFromJSON", func(t *testing.T) {
+		credPK, err := CredentialPrivateKeyFromJSON("should error")
+		assert.NotEmpty(t, err)
+		assert.Empty(t, credPK)
+	})
+//	will test positive test case once C.ursa_cl_issuer_new_credential_def is wrapped
+}
