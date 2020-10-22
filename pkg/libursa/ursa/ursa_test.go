@@ -2,6 +2,7 @@ package ursa
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,5 +30,13 @@ func TestNonceFromJson(t *testing.T) {
 		n, err := NonceFromJson("should_error")
 		assert.Empty(t, n)
 		assert.NotEmpty(t, err)
+	})
+}
+
+func TestCredentialKeyCorrectnessProofFromJSON(t *testing.T) {
+	t.Run("CredentialKeyCorrectnessProofFromJSON", func(t *testing.T) {
+		correctnessProof, err := CredentialKeyCorrectnessProofFromJSON("bad string")
+		assert.NotEmpty(t, err)
+		assert.Empty(t, correctnessProof)
 	})
 }

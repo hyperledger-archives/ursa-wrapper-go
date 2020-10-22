@@ -88,3 +88,16 @@ ErrorCode ursa_cl_nonce_free(const void *nonce);
  * * `nonce_p` - Reference that will contain nonce instance pointer.
  */
 struct ExternError ursa_cl_nonce_from_json(const char *nonce_json, const void **nonce_p);
+
+/**
+ * Creates and returns credential key correctness proof from json.
+ *
+ * Note: Credential key correctness proof instance deallocation must be performed
+ * by calling ursa_cl_credential_key_correctness_proof_free
+ *
+ * # Arguments
+ * * `credential_key_correctness_proof_json` - Reference that contains credential key correctness proof json.
+ * * `credential_key_correctness_proof_p` - Reference that will contain credential key correctness proof instance pointer.
+ */
+struct ExternError ursa_cl_credential_key_correctness_proof_from_json(const char *credential_key_correctness_proof_json,
+                                                             const void **credential_key_correctness_proof_p);
