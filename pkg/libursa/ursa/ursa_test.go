@@ -17,7 +17,7 @@ func TestNewNonce(t *testing.T) {
 func TestNonceFromJson(t *testing.T) {
 	t.Run("NonceFromJson", func(t *testing.T) {
 		n, err := NonceFromJson("123456")
-		if  n == nil {
+		if n == nil {
 			t.Errorf("NewNonce() returned blank value")
 		}
 
@@ -47,4 +47,13 @@ func TestBlindedCredentialSecretsCorrectnessProofFromJSON(t *testing.T) {
 		assert.NotEmpty(t, err)
 		assert.Empty(t, correctnessProof)
 	})
+}
+
+func TestBlindedCredentialSecretsFromJSON(t *testing.T) {
+	t.Run("BlindedCredentialSecretsFromJSON", func(t *testing.T) {
+		credentialSecrets, err := BlindedCredentialSecretsFromJSON("should error")
+		assert.NotEmpty(t, err)
+		assert.Empty(t, credentialSecrets)
+	})
+	//	will test positive test case once C.ursa_cl_prover_blind_credential_secrets is wrapped
 }
