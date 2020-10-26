@@ -140,3 +140,16 @@ struct ExternError ursa_cl_blinded_credential_secrets_from_json(const char *blin
 */
 struct ExternError ursa_cl_credential_private_key_from_json(const char *credential_priv_key_json,
                                                   const void **credential_priv_key_p);
+
+/**
+ * Creates and returns credential public key from json.
+ *
+ * Note: Credential public key instance deallocation must be performed
+ * by calling ursa_cl_credential_public_key_free
+ *
+ * # Arguments
+ * * `credential_pub_key_json` - Reference that contains credential public key json.
+ * * `credential_pub_key_p` - Reference that will contain credential public key instance pointer.
+ */
+struct ExternError ursa_cl_credential_public_key_from_json(const char *credential_pub_key_json,
+                                                  const void **credential_pub_key_p);
