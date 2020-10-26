@@ -91,6 +91,20 @@ func BlindedCredentialSecretsFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+//CredentialPrivateKeyFromJSON creates and returns credential private key from json
+func CredentialPrivateKeyFromJSON(jsn string) (unsafe.Pointer, error) {
+	var handle unsafe.Pointer
+	cjson := C.CString(jsn)
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_credential_private_key_from_json(cjson, &handle)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return handle, nil
+}
+
 func ursaError(msg string) error {
 	cMsg := C.CString(msg)
 	defer C.free(unsafe.Pointer(cMsg))

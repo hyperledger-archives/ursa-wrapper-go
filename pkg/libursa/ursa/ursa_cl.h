@@ -127,3 +127,16 @@ struct ExternError ursa_cl_blinded_credential_secrets_correctness_proof_from_jso
  */
 struct ExternError ursa_cl_blinded_credential_secrets_from_json(const char *blinded_credential_secrets_json,
                                                        const void **blinded_credential_secrets_p);
+
+/**
+* Creates and returns credential private key from json.
+*
+* Note: Credential private key instance deallocation must be performed
+* by calling ursa_cl_credential_private_key_free
+*
+* # Arguments
+* * `credential_priv_key_json` - Reference that contains credential private key json.
+* * `credential_priv_key_p` - Reference that will contain credential private key instance pointer.
+*/
+struct ExternError ursa_cl_credential_private_key_from_json(const char *credential_priv_key_json,
+                                                  const void **credential_priv_key_p);
