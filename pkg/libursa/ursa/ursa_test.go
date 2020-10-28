@@ -2,6 +2,7 @@ package ursa
 
 import (
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -94,4 +95,19 @@ func TestCredentialPublicKeyFromJSON(t *testing.T) {
 		assert.Empty(t, err)
 		assert.NotEmpty(t, credPubKey)
 	})
+}
+
+func TestSignCredential(t *testing.T) {
+	signParams := NewSignatureParams()
+
+	sig, err := signParams.SignCredential()
+	assert.NotEmpty(t, err)
+	assert.Empty(t, sig)
+}
+
+func TestCorrectnessProofToJSON(t *testing.T) {
+	var emptyProof unsafe.Pointer
+	proof, err := CorrectnessProofToJSON(emptyProof)
+	assert.NotEmpty(t, err)
+	assert.Empty(t, proof)
 }
