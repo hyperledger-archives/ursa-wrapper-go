@@ -119,6 +119,94 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+func CorrectnessProofToJSON(credSignatureCorrectnessProof unsafe.Pointer) ([]byte, error) {
+	var proofOut *C.char
+
+	result := C.ursa_cl_signature_correctness_proof_to_json(credSignatureCorrectnessProof, &proofOut)
+	defer C.free(unsafe.Pointer(proofOut))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(proofOut)), nil
+}
+
+type SignatureParams struct {
+	ProverID string
+	BlindedCredentialSecrets string
+	BlindedCredentialSecretsCorrectnessProof string
+	CredentialIssuanceNonce string
+	CredentialNonce string
+	CredentialValues unsafe.Pointer
+	CredentialPubKey string
+	CredentialPrivKey string
+}
+
+//NewSignatureParams creates an empty instance of SignatureParams
+func NewSignatureParams() *SignatureParams {
+	return &SignatureParams{}
+}
+
+//SignCredential signs credential values with primary keys only
+func (r *SignatureParams) SignCredential() ([]byte, error) {
+	defer C.free(r.CredentialValues)
+	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
+
+	did := C.CString(r.ProverID)
+
+	blindedCredentialSecrets, err := BlindedCredentialSecretsFromJSON(r.BlindedCredentialSecrets)
+	if err != nil {
+		return nil, err
+	}
+
+	blindedCredentialSecretsCorrectnessProof, err := BlindedCredentialSecretsCorrectnessProofFromJSON(r.BlindedCredentialSecretsCorrectnessProof)
+	if err != nil {
+		return nil, err
+	}
+
+	credentialIssuanceNonce, err := NonceFromJson(r.CredentialIssuanceNonce)
+	if err != nil {
+		return nil, err
+	}
+
+	credentialNonce, err := NonceFromJson(r.CredentialNonce)
+	if err != nil {
+		return nil, err
+	}
+
+	credentialPubKey, err := CredentialPublicKeyFromJSON(r.CredentialPubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	credentialPrivKey, err := CredentialPrivateKeyFromJSON(r.CredentialPrivKey)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		C.free(unsafe.Pointer(did))
+		C.free(blindedCredentialSecrets)
+		C.free(blindedCredentialSecretsCorrectnessProof)
+		C.free(credentialIssuanceNonce)
+		C.free(credentialNonce)
+		C.free(credentialPubKey)
+		C.free(credentialPrivKey)
+	}()
+
+	result := C.ursa_cl_issuer_sign_credential(did, blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof,
+		credentialIssuanceNonce, credentialNonce, r.CredentialValues, credentialPubKey, credentialPrivKey, &credSignature, &credSignatureCorrectnessProof)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+	var sigOut *C.char
+	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
+	defer C.free(unsafe.Pointer(sigOut))
+	defer C.ursa_cl_credential_signature_free(credSignature)
+
+	return []byte(C.GoString(sigOut)), nil
+}
+
 func ursaError(msg string) error {
 	cMsg := C.CString(msg)
 	defer C.free(unsafe.Pointer(cMsg))
