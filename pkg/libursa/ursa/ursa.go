@@ -119,6 +119,29 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+func CredentialPublicKeyToJSON(pubKey unsafe.Pointer) ([]byte, error) {
+	var pubJson *C.char
+	result := C.ursa_cl_credential_public_key_to_json(pubKey, &pubJson)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+	defer C.free(unsafe.Pointer(pubJson))
+
+	return []byte(C.GoString(pubJson)), nil
+}
+
+//CredentialPrivateKeyToJSON returns json representation of credential private key
+func CredentialPrivateKeyToJSON(privKey unsafe.Pointer) ([]byte, error) {
+	var privJson *C.char
+	result := C.ursa_cl_credential_private_key_to_json(privKey, &privJson)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+	defer C.free(unsafe.Pointer(privJson))
+
+	return []byte(C.GoString(privJson)), nil
+}
+
 //NonCredentialSchemaBuilderNew creates and returns non credential schema builder
 func NonCredentialSchemaBuilderNew() (unsafe.Pointer, error) {
 	var nonBuilder unsafe.Pointer
@@ -200,8 +223,6 @@ type CredentialDef struct {
 //NewCredentialDef creates and returns credential definition (public and private keys, correctness proof) entities
 func NewCredentialDef(schema, nonSchema unsafe.Pointer, revocation bool) (*CredentialDef, error) {
 	rev := C.bool(revocation)
-	defer C.free(unsafe.Pointer(&rev))
-
 	var credpub, credpriv, credproof unsafe.Pointer
 
 	result := C.ursa_cl_issuer_new_credential_def(schema, nonSchema, rev, &credpub, &credpriv, &credproof)
@@ -297,7 +318,7 @@ func NewSignatureParams() *SignatureParams {
 }
 
 //SignCredential signs credential values with primary keys only
-func (r *SignatureParams) SignCredential() ([]byte, error) {
+func (r *SignatureParams) SignCredential() (signature []byte, proof []byte, err error) {
 	defer C.free(r.CredentialValues)
 	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
 
@@ -305,32 +326,32 @@ func (r *SignatureParams) SignCredential() ([]byte, error) {
 
 	blindedCredentialSecrets, err := BlindedCredentialSecretsFromJSON(r.BlindedCredentialSecrets)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	blindedCredentialSecretsCorrectnessProof, err := BlindedCredentialSecretsCorrectnessProofFromJSON(r.BlindedCredentialSecretsCorrectnessProof)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	credentialIssuanceNonce, err := NonceFromJson(r.CredentialIssuanceNonce)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	credentialNonce, err := NonceFromJson(r.CredentialNonce)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	credentialPubKey, err := CredentialPublicKeyFromJSON(r.CredentialPubKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	credentialPrivKey, err := CredentialPrivateKeyFromJSON(r.CredentialPrivKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer func() {
@@ -346,14 +367,24 @@ func (r *SignatureParams) SignCredential() ([]byte, error) {
 	result := C.ursa_cl_issuer_sign_credential(did, blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof,
 		credentialIssuanceNonce, credentialNonce, r.CredentialValues, credentialPubKey, credentialPrivKey, &credSignature, &credSignatureCorrectnessProof)
 	if result.code != 0 {
-		return nil, ursaError(C.GoString(result.message))
+		return nil, nil, ursaError(C.GoString(result.message))
 	}
 	var sigOut *C.char
 	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
+	if result.code != 0 {
+		return nil, nil, ursaError(C.GoString(result.message))
+	}
 	defer C.free(unsafe.Pointer(sigOut))
 	defer C.ursa_cl_credential_signature_free(credSignature)
 
-	return []byte(C.GoString(sigOut)), nil
+	var proofOut *C.char
+	result = C.ursa_cl_signature_correctness_proof_to_json(credSignatureCorrectnessProof, &proofOut)
+	if result.code != 0 {
+		return nil, nil, ursaError(C.GoString(result.message))
+	}
+	defer C.free(unsafe.Pointer(proofOut))
+
+	return []byte(C.GoString(sigOut)), []byte(C.GoString(proofOut)), nil
 }
 
 func ursaError(msg string) error {

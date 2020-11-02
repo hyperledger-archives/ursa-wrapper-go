@@ -100,9 +100,10 @@ func TestCredentialPublicKeyFromJSON(t *testing.T) {
 func TestSignCredential(t *testing.T) {
 	signParams := NewSignatureParams()
 
-	sig, err := signParams.SignCredential()
+	sig, proof, err := signParams.SignCredential()
 	assert.NotEmpty(t, err)
 	assert.Empty(t, sig)
+	assert.Empty(t, proof)
 }
 
 func TestCorrectnessProofToJSON(t *testing.T) {
@@ -211,7 +212,45 @@ func TestFreeCredentialPublicKey(t *testing.T) {
 func TestFreeCredentialKeyCorrectnessProof(t *testing.T) {
 	t.Run("FreeCredentialKeyCorrectnessProof", func(t *testing.T) {
 		var proof unsafe.Pointer
-		err := FreeCredentialSchema(proof)
+		err := FreeCredentialKeyCorrectnessProof(proof)
 		assert.NotEmpty(t, err)
+	})
+}
+
+func TestCredentialPublicKeyToJSON(t *testing.T) {
+	t.Run("CredentialPublicKeyToJSON", func(t *testing.T) {
+		schemaBuilder, _ := CredentialSchemaBuilderNew()
+		_ = CredentialSchemaBuilderAddAttr(schemaBuilder,"master_secret")
+		schema, _ := CredentialSchemaBuilderFinalize(schemaBuilder)
+
+		nonSchemaBuilder, _ := NonCredentialSchemaBuilderNew()
+		_ = NonCredentialSchemaBuilderAddAttr(nonSchemaBuilder, "master_secret")
+		nonSchema, _ := NonCredentialSchemaBuilderFinalize(nonSchemaBuilder)
+
+		credDef, _ := NewCredentialDef(schema, nonSchema, false)
+
+		pubKey, err := CredentialPublicKeyToJSON(credDef.PubKey)
+
+		assert.Empty(t, err)
+		assert.NotEmpty(t, pubKey)
+	})
+}
+
+func TestCredentialPrivateKeyToJSON(t *testing.T) {
+	t.Run("CredentialPrivateKeyToJSON", func(t *testing.T) {
+		schemaBuilder, _ := CredentialSchemaBuilderNew()
+		_ = CredentialSchemaBuilderAddAttr(schemaBuilder,"master_secret")
+		schema, _ := CredentialSchemaBuilderFinalize(schemaBuilder)
+
+		nonSchemaBuilder, _ := NonCredentialSchemaBuilderNew()
+		_ = NonCredentialSchemaBuilderAddAttr(nonSchemaBuilder, "master_secret")
+		nonSchema, _ := NonCredentialSchemaBuilderFinalize(nonSchemaBuilder)
+
+		credDef, _ := NewCredentialDef(schema, nonSchema, false)
+
+		privKey, err := CredentialPrivateKeyToJSON(credDef.PrivKey)
+
+		assert.Empty(t, err)
+		assert.NotEmpty(t, privKey)
 	})
 }

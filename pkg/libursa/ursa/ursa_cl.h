@@ -215,6 +215,26 @@ struct ExternError ursa_cl_signature_correctness_proof_to_json(const void *signa
 struct ExternError ursa_cl_credential_signature_free(const void *credential_signature);
 
 /**
+ * Returns json representation of credential public key.
+ *
+ * # Arguments
+ * * `credential_pub_key` - Reference that contains credential public key instance pointer.
+ * * `credential_pub_key_p` - Reference that will contain credential public key json.
+ */
+struct ExternError ursa_cl_credential_public_key_to_json(const void *credential_pub_key,
+                                                const char **credential_pub_key_json_p);
+
+/**
+ * Returns json representation of credential key correctness proof.
+ *
+ * # Arguments
+ * * `credential_key_correctness_proof` - Reference that contains credential key correctness proof instance pointer.
+ * * `credential_key_correctness_proof_p` - Reference that will contain credential key correctness proof json.
+ */
+struct ExternError ursa_cl_credential_key_correctness_proof_to_json(const void *credential_key_correctness_proof,
+                                                           const char **credential_key_correctness_proof_json_p);
+
+/**
  * Adds new attribute to non credential schema.
  *
  * # Arguments
@@ -427,3 +447,13 @@ struct ExternError ursa_cl_credential_private_key_free(const void *credential_pr
  * * `credential_pub_key` - Reference that contains credential public key instance pointer.
  */
 struct ExternError ursa_cl_credential_public_key_free(const void *credential_pub_key);
+
+/**
+ * Returns json representation of credential private key.
+ *
+ * # Arguments
+ * * `credential_priv_key` - Reference that contains credential private key instance pointer.
+ * * `credential_pub_key_p` - Reference that will contain credential private key json.
+ */
+struct ExternError ursa_cl_credential_private_key_to_json(const void *credential_priv_key,
+                                                 const char **credential_priv_key_json_p);
