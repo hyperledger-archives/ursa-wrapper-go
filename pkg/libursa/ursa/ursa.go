@@ -119,6 +119,43 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+//NonCredentialSchemaBuilderNew creates and returns non credential schema builder
+func NonCredentialSchemaBuilderNew() (unsafe.Pointer, error) {
+	var nonBuilder unsafe.Pointer
+
+	result := C.ursa_cl_non_credential_schema_builder_new(&nonBuilder)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return nonBuilder, nil
+}
+
+//NonCredentialSchemaBuilderAddAttr adds new attribute to non credential schema
+func NonCredentialSchemaBuilderAddAttr(nonBuilder unsafe.Pointer, attr string) error {
+	cAttr := C.CString(attr)
+	defer C.free(unsafe.Pointer(cAttr))
+
+	result := C.ursa_cl_non_credential_schema_builder_add_attr(nonBuilder, cAttr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+//NonCredentialSchemaBuilderFinalize deallocates non_credential schema builder and returns non credential schema entity instead
+func NonCredentialSchemaBuilderFinalize(nonBuilder unsafe.Pointer) (unsafe.Pointer, error) {
+	var nonSchema unsafe.Pointer
+
+	result := C.ursa_cl_non_credential_schema_builder_finalize(nonBuilder, &nonSchema)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return nonSchema, nil
+}
+
 //CredentialSchemaBuilderNew creates and return credential schema entity builder
 func CredentialSchemaBuilderNew() (unsafe.Pointer, error) {
 	var builder unsafe.Pointer

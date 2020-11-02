@@ -112,6 +112,36 @@ func TestCorrectnessProofToJSON(t *testing.T) {
 	assert.Empty(t, proof)
 }
 
+func TestNonCredentialSchemaBuilderNew(t *testing.T) {
+	t.Run("NonCredentialSchemaBuilderNew", func(t *testing.T) {
+		nonBuilder, err := NonCredentialSchemaBuilderNew()
+		assert.Empty(t, err)
+		assert.NotEmpty(t, nonBuilder)
+	})
+}
+
+func TestNonCredentialSchemaBuilderAddAttr(t *testing.T) {
+	t.Run("NonCredentialSchemaBuilderAddAttr", func(t *testing.T) {
+		nonBuilder, _ := NonCredentialSchemaBuilderNew()
+		originalNonBuilder := nonBuilder
+
+		err := NonCredentialSchemaBuilderAddAttr(nonBuilder,"master_secret")
+		assert.Empty(t, err)
+		assert.NotSame(t, originalNonBuilder, nonBuilder, "builders should differ after adding attribute")
+	})
+}
+
+func TestNonCredentialSchemaBuilderFinalize(t *testing.T) {
+	t.Run("NonCredentialSchemaBuilderFinalize", func(t *testing.T) {
+		nonBuilder, _ := NonCredentialSchemaBuilderNew()
+		_ = NonCredentialSchemaBuilderAddAttr(nonBuilder,"master_secret")
+
+		nonSchema, err := NonCredentialSchemaBuilderFinalize(nonBuilder)
+		assert.Empty(t, err)
+		assert.NotEmpty(t, nonSchema)
+	})
+}
+
 func TestCredentialSchemaBuilderNew(t *testing.T) {
 	t.Run("CredentialSchemaBuilderNew", func(t *testing.T) {
 		schemaBuilder, err := CredentialSchemaBuilderNew()
