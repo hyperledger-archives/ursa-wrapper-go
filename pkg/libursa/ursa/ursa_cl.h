@@ -215,6 +215,43 @@ struct ExternError ursa_cl_signature_correctness_proof_to_json(const void *signa
 struct ExternError ursa_cl_credential_signature_free(const void *credential_signature);
 
 /**
+ * Creates and returns credential schema entity builder.
+ *
+ * The purpose of credential schema builder is building of credential schema entity that
+ * represents credential schema attributes set.
+ *
+ * Note: Credential schema builder instance deallocation must be performed by
+ * calling ursa_cl_credential_schema_builder_finalize.
+ *
+ * # Arguments
+ * * `credential_schema_builder_p` - Reference that will contain credentials attributes builder instance pointer.
+ */
+struct ExternError ursa_cl_credential_schema_builder_new(const void **credential_schema_builder_p);
+
+/**
+ * Adds new attribute to credential schema.
+ *
+ * # Arguments
+ * * `credential_schema_builder` - Reference that contains credential schema builder instance pointer.
+ * * `attr` - Attribute to add as null terminated string.
+ */
+struct ExternError ursa_cl_credential_schema_builder_add_attr(const void *credential_schema_builder,
+                                                     const char *attr);
+
+/**
+ * Deallocates credential schema builder and returns credential schema entity instead.
+ *
+ * Note: Credentials schema instance deallocation must be performed by
+ * calling ursa_cl_credential_schema_free.
+ *
+ * # Arguments
+ * * `credential_schema_builder` - Reference that contains credential schema builder instance pointer
+ * * `credential_schema_p` - Reference that will contain credentials schema instance pointer.
+ */
+struct ExternError ursa_cl_credential_schema_builder_finalize(const void *credential_schema_builder,
+                                                     const void **credential_schema_p);
+
+/**
  * Adds new hidden attribute dec_value to credential values map.
  *
  * # Arguments
