@@ -112,6 +112,10 @@ func TestCorrectnessProofToJSON(t *testing.T) {
 	assert.Empty(t, proof)
 }
 
+// will test once credential and non credential schema builder methods are available
+func TestNewCredentialDef(t *testing.T) {
+}
+
 func TestFreeCredentialSchema(t *testing.T) {
 	t.Run("FreeCredentialSchema", func(t *testing.T) {
 		var schema unsafe.Pointer

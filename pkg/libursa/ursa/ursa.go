@@ -119,6 +119,33 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+type CredentialDef struct {
+	PubKey unsafe.Pointer
+	PrivKey unsafe.Pointer
+	KeyCorrectnessProof unsafe.Pointer
+}
+
+//NewCredentialDef creates and returns credential definition (public and private keys, correctness proof) entities
+func NewCredentialDef(schema, nonSchema unsafe.Pointer, revocation bool) (*CredentialDef, error) {
+	rev := C.bool(revocation)
+	defer C.free(unsafe.Pointer(&rev))
+
+	var credpub, credpriv, credproof unsafe.Pointer
+
+	result := C.ursa_cl_issuer_new_credential_def(schema, nonSchema, rev, &credpub, &credpriv, &credproof)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	credDef := &CredentialDef{
+		PubKey: credpub,
+		PrivKey: credpriv,
+		KeyCorrectnessProof: credproof,
+	}
+
+	return credDef, nil
+}
+
 //FreeCredentialSchema deallocates credential schema instance
 func FreeCredentialSchema(schema unsafe.Pointer) error {
 	result := C.ursa_cl_credential_schema_free(schema)
