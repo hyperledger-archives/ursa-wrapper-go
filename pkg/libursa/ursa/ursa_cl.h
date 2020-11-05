@@ -215,6 +215,43 @@ struct ExternError ursa_cl_signature_correctness_proof_to_json(const void *signa
 struct ExternError ursa_cl_credential_signature_free(const void *credential_signature);
 
 /**
+ * Adds new attribute to non credential schema.
+ *
+ * # Arguments
+ * * `non_credential_schema_builder` - Reference that contains non credential schema builder instance pointer.
+ * * `attr` - Attribute to add as null terminated string.
+ */
+struct ExternError ursa_cl_non_credential_schema_builder_add_attr(const void *non_credential_schema_builder,
+                                                         const char *attr);
+
+/**
+ * Deallocates non_credential schema builder and returns non credential schema entity instead.
+ *
+ * Note: Non credential schema instance deallocation must be performed by
+ * calling ursa_cl_non_credential_schema_free.
+ *
+ * # Arguments
+ * * `non_credential_schema_builder` - Reference that contains non credential schema builder instance pointer
+ * * `non_credential_schema_p` - Reference that will contain non credentials schema instance pointer.
+ */
+struct ExternError ursa_cl_non_credential_schema_builder_finalize(const void *non_credential_schema_builder,
+                                                         const void **non_credential_schema_p);
+
+/**
+ * Creates and returns non credential schema builder.
+ *
+ * The purpose of non credential schema builder is building of non credential schema that
+ * represents non credential schema attributes set. These are attributes added to schemas that are not on the ledger
+ *
+ * Note: Non credential schema builder instance deallocation must be performed by
+ * calling ursa_cl_non_credential_schema_builder_finalize.
+ *
+ * # Arguments
+ * * `credential_schema_builder_p` - Reference that will contain credentials attributes builder instance pointer.
+ */
+struct ExternError ursa_cl_non_credential_schema_builder_new(const void **non_credential_schema_builder_p);
+
+/**
  * Creates and returns credential schema entity builder.
  *
  * The purpose of credential schema builder is building of credential schema entity that
