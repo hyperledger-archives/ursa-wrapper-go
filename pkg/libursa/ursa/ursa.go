@@ -119,6 +119,56 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+//FreeCredentialSchema deallocates credential schema instance
+func FreeCredentialSchema(schema unsafe.Pointer) error {
+	result := C.ursa_cl_credential_schema_free(schema)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+//FreeNonCredentialSchema deallocates credential schema instance
+func FreeNonCredentialSchema(nonSchema unsafe.Pointer) error {
+	result := C.ursa_cl_non_credential_schema_free(nonSchema)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+//FreeCredentialPrivateKey deallocates credential private key instance
+func FreeCredentialPrivateKey(privKey unsafe.Pointer) error {
+	result := C.ursa_cl_credential_private_key_free(privKey)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+//FreeCredentialPublicKey deallocates credential public key instance
+func FreeCredentialPublicKey(pubKey unsafe.Pointer) error {
+	result := C.ursa_cl_credential_public_key_free(pubKey)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+//FreeCredentialKeyCorrectnessProof deallocates credential key correctness proof instance
+func FreeCredentialKeyCorrectnessProof(proof unsafe.Pointer) error {
+	result := C.ursa_cl_credential_key_correctness_proof_free(proof)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
 func CorrectnessProofToJSON(credSignatureCorrectnessProof unsafe.Pointer) ([]byte, error) {
 	var proofOut *C.char
 
