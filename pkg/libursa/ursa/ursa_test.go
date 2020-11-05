@@ -112,6 +112,36 @@ func TestCorrectnessProofToJSON(t *testing.T) {
 	assert.Empty(t, proof)
 }
 
+func TestCredentialSchemaBuilderNew(t *testing.T) {
+	t.Run("CredentialSchemaBuilderNew", func(t *testing.T) {
+		schemaBuilder, err := CredentialSchemaBuilderNew()
+		assert.Empty(t, err)
+		assert.NotEmpty(t, schemaBuilder)
+	})
+}
+
+func TestCredentialSchemaBuilderAddAttr(t *testing.T) {
+	t.Run("CredentialSchemaBuilderAddAttr", func(t *testing.T) {
+		builder, _ := CredentialSchemaBuilderNew()
+		originalBuilder := builder
+		err := CredentialSchemaBuilderAddAttr(builder,"master_secret")
+		assert.Empty(t, err)
+		assert.NotEmpty(t, builder)
+		assert.NotSame(t, builder, originalBuilder, "builder should differ from the original builder")
+	})
+}
+
+func TestCredentialSchemaBuilderFinalize(t *testing.T) {
+	t.Run("CredentialSchemaBuilderFinalize", func(t *testing.T) {
+		builder, _ := CredentialSchemaBuilderNew()
+		_ = CredentialSchemaBuilderAddAttr(builder,"master_secret")
+
+		schema, err := CredentialSchemaBuilderFinalize(builder)
+		assert.Empty(t, err)
+		assert.NotEmpty(t, schema)
+	})
+}
+
 // will test once credential and non credential schema builder methods are available
 func TestNewCredentialDef(t *testing.T) {
 }

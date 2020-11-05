@@ -119,6 +119,41 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+//CredentialSchemaBuilderNew creates and return credential schema entity builder
+func CredentialSchemaBuilderNew() (unsafe.Pointer, error) {
+	var builder unsafe.Pointer
+	result := C.ursa_cl_credential_schema_builder_new(&builder)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return builder, nil
+}
+
+//CredentialSchemaBuilderAddAttr adds new attribute to credential schema
+func CredentialSchemaBuilderAddAttr(builder unsafe.Pointer, field string) error {
+	cfield := C.CString(field)
+	result := C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
+	C.free(unsafe.Pointer(cfield))
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+//CredentialSchemaBuilderFinalize deallocates credential schema builder and return credential schema entity instead
+func CredentialSchemaBuilderFinalize(builder unsafe.Pointer) (unsafe.Pointer, error) {
+	var schema unsafe.Pointer
+
+	result := C.ursa_cl_credential_schema_builder_finalize(builder, &schema)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return schema, nil
+}
+
 type CredentialDef struct {
 	PubKey unsafe.Pointer
 	PrivKey unsafe.Pointer
