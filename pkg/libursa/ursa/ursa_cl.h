@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum {
     Success = 0,
@@ -212,6 +213,33 @@ struct ExternError ursa_cl_signature_correctness_proof_to_json(const void *signa
  * * `credential_signature` - Reference that contains credential signature instance pointer.
  */
 struct ExternError ursa_cl_credential_signature_free(const void *credential_signature);
+
+/**
+ * Creates and returns credential definition (public and private keys, correctness proof) entities.
+ *
+ * Note that credential public key instances deallocation must be performed by
+ * calling ursa_cl_credential_public_key_free.
+ *
+ * Note that credential private key instances deallocation must be performed by
+ * calling ursa_cl_credential_private_key_free.
+ *
+ * Note that credential key correctness proof instances deallocation must be performed by
+ * calling ursa_cl_credential_key_correctness_proof_free.
+ *
+ * # Arguments
+ * * `credential_schema` - Reference that contains credential schema instance pointer.
+ * * `non_credential_schema` - Reference that contains non credential schema instance pointer
+ * * `support_revocation` - If true non revocation part of credential keys will be generated.
+ * * `credential_pub_key_p` - Reference that will contain credential public key instance pointer.
+ * * `credential_priv_key_p` - Reference that will contain credential private key instance pointer.
+ * * `credential_key_correctness_proof_p` - Reference that will contain credential keys correctness proof instance pointer.
+ */
+struct ExternError ursa_cl_issuer_new_credential_def(const void *credential_schema,
+                                            const void *non_credential_schema,
+                                            _Bool support_revocation,
+                                            const void **credential_pub_key_p,
+                                            const void **credential_priv_key_p,
+                                            const void **credential_key_correctness_proof_p);
 
 /**
  * Deallocates credential schema instance.
