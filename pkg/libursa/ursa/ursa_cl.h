@@ -212,3 +212,43 @@ struct ExternError ursa_cl_signature_correctness_proof_to_json(const void *signa
  * * `credential_signature` - Reference that contains credential signature instance pointer.
  */
 struct ExternError ursa_cl_credential_signature_free(const void *credential_signature);
+
+/**
+ * Deallocates credential schema instance.
+ *
+ * # Arguments
+ * * `credential_schema` - Reference that contains credential schema instance pointer.
+ */
+struct ExternError ursa_cl_credential_schema_free(const void *credential_schema);
+
+/**
+ * Deallocates credential key correctness proof instance.
+ *
+ * # Arguments
+ * * `credential_key_correctness_proof` - Reference that contains credential key correctness proof instance pointer.
+ */
+struct ExternError ursa_cl_credential_key_correctness_proof_free(const void *credential_key_correctness_proof);
+
+/**
+ * Deallocates credential schema instance.
+ *
+ * # Arguments
+ * * `non_credential_schema` - Reference that contains non credential schema instance pointer.
+ */
+struct ExternError ursa_cl_non_credential_schema_free(const void *non_credential_schema);
+
+/**
+ * Deallocates credential private key instance.
+ *
+ * # Arguments
+ * * `credential_priv_key` - Reference that contains credential private key instance pointer.
+ */
+struct ExternError ursa_cl_credential_private_key_free(const void *credential_priv_key);
+
+/**
+ * Deallocates credential public key instance.
+ *
+ * # Arguments
+ * * `credential_pub_key` - Reference that contains credential public key instance pointer.
+ */
+struct ExternError ursa_cl_credential_public_key_free(const void *credential_pub_key);

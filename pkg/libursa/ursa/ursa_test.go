@@ -111,3 +111,43 @@ func TestCorrectnessProofToJSON(t *testing.T) {
 	assert.NotEmpty(t, err)
 	assert.Empty(t, proof)
 }
+
+func TestFreeCredentialSchema(t *testing.T) {
+	t.Run("FreeCredentialSchema", func(t *testing.T) {
+		var schema unsafe.Pointer
+		err := FreeCredentialSchema(schema)
+		assert.NotEmpty(t, err)
+	})
+}
+
+func TestFreeNonCredentialSchema(t *testing.T) {
+	t.Run("FreeNonCredentialSchema", func(t *testing.T) {
+		var nonSchema unsafe.Pointer
+		err := FreeNonCredentialSchema(nonSchema)
+		assert.NotEmpty(t, err)
+	})
+}
+
+func TestFreeCredentialPrivateKey(t *testing.T) {
+	t.Run("FreeCredentialPrivateKey", func(t *testing.T) {
+		var privKey unsafe.Pointer
+		err := FreeCredentialPrivateKey(privKey)
+		assert.NotEmpty(t, err)
+	})
+}
+
+func TestFreeCredentialPublicKey(t *testing.T) {
+	t.Run("FreeCredentialPublicKey", func(t *testing.T) {
+		var pubKey unsafe.Pointer
+		err := FreeCredentialPublicKey(pubKey)
+		assert.NotEmpty(t, err)
+	})
+}
+
+func TestFreeCredentialKeyCorrectnessProof(t *testing.T) {
+	t.Run("FreeCredentialKeyCorrectnessProof", func(t *testing.T) {
+		var proof unsafe.Pointer
+		err := FreeCredentialSchema(proof)
+		assert.NotEmpty(t, err)
+	})
+}
