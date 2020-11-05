@@ -215,6 +215,79 @@ struct ExternError ursa_cl_signature_correctness_proof_to_json(const void *signa
 struct ExternError ursa_cl_credential_signature_free(const void *credential_signature);
 
 /**
+ * Adds new hidden attribute dec_value to credential values map.
+ *
+ * # Arguments
+ * * `credential_values_builder` - Reference that contains credential values builder instance pointer.
+ * * `attr` - Credential attr to add as null terminated string.
+ * * `dec_value` - Credential attr dec_value. Decimal BigNum representation as null terminated string.
+ * * `dec_blinding_factor` - Credential blinding factor. Decimal BigNum representation as null terminated string
+ */
+struct ExternError ursa_cl_credential_values_builder_add_dec_commitment(const void *credential_values_builder,
+                                                               const char *attr,
+                                                               const char *dec_value,
+                                                               const char *dec_blinding_factor);
+
+/**
+ * Adds new hidden attribute dec_value to credential values map.
+ *
+ * # Arguments
+ * * `credential_values_builder` - Reference that contains credential values builder instance pointer.
+ * * `attr` - Credential attr to add as null terminated string.
+ * * `dec_value` - Credential attr dec_value. Decimal BigNum representation as null terminated string.
+ */
+struct ExternError ursa_cl_credential_values_builder_add_dec_hidden(const void *credential_values_builder,
+                                                           const char *attr,
+                                                           const char *dec_value);
+
+/**
+ * Adds new known attribute dec_value to credential values map.
+ *
+ * # Arguments
+ * * `credential_values_builder` - Reference that contains credential values builder instance pointer.
+ * * `attr` - Credential attr to add as null terminated string.
+ * * `dec_value` - Credential attr dec_value. Decimal BigNum representation as null terminated string.
+ */
+struct ExternError ursa_cl_credential_values_builder_add_dec_known(const void *credential_values_builder,
+                                                          const char *attr,
+                                                          const char *dec_value);
+
+/**
+ * Deallocates credential values builder and returns credential values entity instead.
+ *
+ * Note: Credentials values instance deallocation must be performed by
+ * calling ursa_cl_credential_values_free.
+ *
+ * # Arguments
+ * * `credential_values_builder` - Reference that contains credential attribute builder instance pointer.
+ * * `credential_values_p` - Reference that will contain credentials values instance pointer.
+ */
+struct ExternError ursa_cl_credential_values_builder_finalize(const void *credential_values_builder,
+                                                     const void **credential_values_p);
+
+/**
+ * Creates and returns credentials values entity builder.
+ *
+ * The purpose of credential values builder is building of credential values entity that
+ * represents credential attributes values map.
+ *
+ * Note: Credentials values builder instance deallocation must be performed by
+ * calling ursa_cl_credential_values_builder_finalize.
+ *
+ * # Arguments
+ * * `credential_values_builder_p` - Reference that will contain credentials values builder instance pointer.
+ */
+struct ExternError ursa_cl_credential_values_builder_new(const void **credential_values_builder_p);
+
+/**
+ * Deallocates credential values instance.
+ *
+ * # Arguments
+ * * `credential_values` - Credential values instance pointer
+ */
+struct ExternError ursa_cl_credential_values_free(const void *credential_values);
+
+/**
  * Creates and returns credential definition (public and private keys, correctness proof) entities.
  *
  * Note that credential public key instances deallocation must be performed by
