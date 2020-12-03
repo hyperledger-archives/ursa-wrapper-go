@@ -1,6 +1,7 @@
 package ursa
 
 import (
+	"fmt"
 	"testing"
 	"unsafe"
 
@@ -17,7 +18,8 @@ func TestNewNonce(t *testing.T) {
 
 func TestNonceFromJson(t *testing.T) {
 	t.Run("NonceFromJson", func(t *testing.T) {
-		n, err := NonceFromJson("123456")
+		jsn := fmt.Sprintf(`"%s"`, "995140445226272493766614")
+		n, err := NonceFromJson(jsn)
 		if n == nil {
 			t.Errorf("NewNonce() returned blank value")
 		}
@@ -31,6 +33,17 @@ func TestNonceFromJson(t *testing.T) {
 		n, err := NonceFromJson("should_error")
 		assert.Empty(t, n)
 		assert.NotEmpty(t, err)
+	})
+
+	t.Run("Pass NonceToJson", func(t *testing.T) {
+		n, err := NewNonce()
+		assert.Empty(t, err)
+		assert.NotEmpty(t, n)
+
+
+		noncePtr, err := NonceFromJson(n)
+		assert.Empty(t, err)
+		assert.NotEmpty(t, noncePtr)
 	})
 }
 
