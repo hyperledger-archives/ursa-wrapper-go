@@ -1,6 +1,8 @@
 package ursa
 
 import (
+	"encoding/json"
+	"math/big"
 	"testing"
 	"unsafe"
 
@@ -10,25 +12,39 @@ import (
 func TestNewNonce(t *testing.T) {
 	t.Run("NewNonce", func(t *testing.T) {
 		n, err := NewNonce()
-		assert.NotEmpty(t, n)
 		assert.Empty(t, err)
+
+		jsn, err := n.ToJSON()
+		assert.NoError(t, err)
+
+		var str string
+		err = json.Unmarshal(jsn, &str)
+
+		i := new(big.Int)
+		_, ok := i.SetString(str, 10)
+		assert.True(t, ok)
 	})
 }
 
-func TestNonceFromJson(t *testing.T) {
-	t.Run("NonceFromJson", func(t *testing.T) {
-		n, err := NonceFromJson("123456")
-		if n == nil {
-			t.Errorf("NewNonce() returned blank value")
-		}
+func TestNonceFromJSON(t *testing.T) {
+	t.Run("NonceFromJSON", func(t *testing.T) {
+		n, err := NonceFromJSON("123456")
+		assert.NoError(t, err)
 
-		if err != nil {
-			t.Errorf("NewNonce() returned error")
-		}
+		jsn, err := n.ToJSON()
+		assert.NoError(t, err)
+
+		var str string
+		err = json.Unmarshal(jsn, &str)
+
+		i := new(big.Int)
+		_, ok := i.SetString(str, 10)
+		assert.True(t, ok)
+		assert.Equal(t, i.Int64(), int64(123456))
 	})
 
-	t.Run("NonceFromJson", func(t *testing.T) {
-		n, err := NonceFromJson("should_error")
+	t.Run("NonceFromJSON", func(t *testing.T) {
+		n, err := NonceFromJSON("should_error")
 		assert.Empty(t, n)
 		assert.NotEmpty(t, err)
 	})
@@ -56,7 +72,6 @@ func TestBlindedCredentialSecretsFromJSON(t *testing.T) {
 		assert.NotEmpty(t, err)
 		assert.Empty(t, credentialSecrets)
 	})
-	//	will test positive test case once C.ursa_cl_prover_blind_credential_secrets is wrapped
 }
 
 func TestCredentialPrivateKeyFromJSON(t *testing.T) {
@@ -65,7 +80,7 @@ func TestCredentialPrivateKeyFromJSON(t *testing.T) {
 		assert.NotEmpty(t, err)
 		assert.Empty(t, credPK)
 	})
-//	will test positive test case once C.ursa_cl_issuer_new_credential_def is wrapped
+	//	will test positive test case once C.ursa_cl_issuer_new_credential_def is wrapped
 }
 
 func TestCredentialPublicKeyFromJSON(t *testing.T) {
@@ -98,11 +113,34 @@ func TestCredentialPublicKeyFromJSON(t *testing.T) {
 }
 
 func TestSignCredential(t *testing.T) {
-	signParams := NewSignatureParams()
+	fields := []string{"attr1", "attr2", "attr3"}
+	vals := map[string]interface{}{
+		"attr1": "val1",
+		"attr2": "val2",
+		"attr3": "val3",
+	}
 
-	sig, err := signParams.SignCredential()
-	assert.NotEmpty(t, err)
-	assert.Empty(t, sig)
+	sig, sigCorrectnessProof := createSignature(t, fields, vals)
+
+	js, err := sig.ToJSON()
+	assert.NoError(t, err)
+
+	newSig, err := CredentialSignatureFromJSON(js)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, newSig)
+
+	err = sig.Free()
+	assert.NoError(t, err)
+
+	js, err = sigCorrectnessProof.ToJSON()
+	assert.NoError(t, err)
+
+	newCP, err := CredentialSignatureCorrectnessProofFromJSON(js)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, newCP)
+
+	err = sigCorrectnessProof.Free()
+	assert.NoError(t, err)
 }
 
 func TestCorrectnessProofToJSON(t *testing.T) {
@@ -112,106 +150,173 @@ func TestCorrectnessProofToJSON(t *testing.T) {
 	assert.Empty(t, proof)
 }
 
-func TestNonCredentialSchemaBuilderNew(t *testing.T) {
-	t.Run("NonCredentialSchemaBuilderNew", func(t *testing.T) {
-		nonBuilder, err := NonCredentialSchemaBuilderNew()
+func TestNewNonCredentialSchemaBuilder(t *testing.T) {
+	t.Run("NewNonCredentialSchemaBuilder", func(t *testing.T) {
+		nonBuilder, err := NewNonCredentialSchemaBuilder()
 		assert.Empty(t, err)
 		assert.NotEmpty(t, nonBuilder)
 	})
 }
 
-func TestNonCredentialSchemaBuilderAddAttr(t *testing.T) {
-	t.Run("NonCredentialSchemaBuilderAddAttr", func(t *testing.T) {
-		nonBuilder, _ := NonCredentialSchemaBuilderNew()
-		originalNonBuilder := nonBuilder
-
-		err := NonCredentialSchemaBuilderAddAttr(nonBuilder,"master_secret")
-		assert.Empty(t, err)
-		assert.NotSame(t, originalNonBuilder, nonBuilder, "builders should differ after adding attribute")
-	})
-}
-
 func TestNonCredentialSchemaBuilderFinalize(t *testing.T) {
 	t.Run("NonCredentialSchemaBuilderFinalize", func(t *testing.T) {
-		nonBuilder, _ := NonCredentialSchemaBuilderNew()
-		_ = NonCredentialSchemaBuilderAddAttr(nonBuilder,"master_secret")
+		nonBuilder, _ := NewNonCredentialSchemaBuilder()
+		err := nonBuilder.AddAttr("master_secret")
+		assert.NoError(t, err)
 
-		nonSchema, err := NonCredentialSchemaBuilderFinalize(nonBuilder)
+		nonSchema, err := nonBuilder.Finalize()
 		assert.Empty(t, err)
 		assert.NotEmpty(t, nonSchema)
+
+		err = nonSchema.Free()
+		assert.NoError(t, err)
 	})
 }
 
 func TestCredentialSchemaBuilderNew(t *testing.T) {
 	t.Run("CredentialSchemaBuilderNew", func(t *testing.T) {
-		schemaBuilder, err := CredentialSchemaBuilderNew()
+		schemaBuilder, err := NewCredentialSchemaBuilder()
 		assert.Empty(t, err)
 		assert.NotEmpty(t, schemaBuilder)
 	})
 }
 
-func TestCredentialSchemaBuilderAddAttr(t *testing.T) {
-	t.Run("CredentialSchemaBuilderAddAttr", func(t *testing.T) {
-		builder, _ := CredentialSchemaBuilderNew()
-		originalBuilder := builder
-		err := CredentialSchemaBuilderAddAttr(builder,"master_secret")
-		assert.Empty(t, err)
-		assert.NotEmpty(t, builder)
-		assert.NotSame(t, builder, originalBuilder, "builder should differ from the original builder")
-	})
-}
-
 func TestCredentialSchemaBuilderFinalize(t *testing.T) {
 	t.Run("CredentialSchemaBuilderFinalize", func(t *testing.T) {
-		builder, _ := CredentialSchemaBuilderNew()
-		_ = CredentialSchemaBuilderAddAttr(builder,"master_secret")
+		builder, _ := NewCredentialSchemaBuilder()
+		err := builder.AddAttr("master_secret")
+		assert.NoError(t, err)
 
-		schema, err := CredentialSchemaBuilderFinalize(builder)
+		schema, err := builder.Finalize()
 		assert.Empty(t, err)
 		assert.NotEmpty(t, schema)
+
+		err = schema.Free()
+		assert.NoError(t, err)
 	})
 }
 
-// will test once credential and non credential schema builder methods are available
-func TestNewCredentialDef(t *testing.T) {
-}
+func TestBlindCredentialSecrets(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		var nonfields []string
 
-func TestFreeCredentialSchema(t *testing.T) {
-	t.Run("FreeCredentialSchema", func(t *testing.T) {
-		var schema unsafe.Pointer
-		err := FreeCredentialSchema(schema)
-		assert.NotEmpty(t, err)
+		fields := []string{"attr1", "attr2", "attr3"}
+		vals := map[string]interface{}{
+			"attr1": "val1",
+			"attr2": "val2",
+			"attr3": "val3",
+		}
+
+		nonce, err := NewNonce()
+		assert.NoError(t, err)
+
+		credDef := createCredentialDefinition(t, fields, nonfields)
+		blindedSecrets := createBlindedSecrets(t, credDef, nonce, vals)
+
+		jsn, err := blindedSecrets.Handle.ToJSON()
+		assert.NoError(t, err)
+
+		m := map[string]interface{}{}
+		err = json.Unmarshal(jsn, &m)
+		assert.NoError(t, err)
+
+		x, ok := m["u"].(string)
+		assert.True(t, ok)
+
+		i := new(big.Int)
+		_, ok = i.SetString(x, 10)
+		assert.True(t, ok)
+
+		err = blindedSecrets.Handle.Free()
+		assert.NoError(t, err)
+
+		jsn, err = blindedSecrets.BlindingFactor.ToJSON()
+		assert.NoError(t, err)
+
+		m = map[string]interface{}{}
+		err = json.Unmarshal(jsn, &m)
+		assert.NoError(t, err)
+
+		x, ok = m["v_prime"].(string)
+		assert.True(t, ok)
+
+		i = new(big.Int)
+		_, ok = i.SetString(x, 10)
+		assert.True(t, ok)
+
+		err = blindedSecrets.BlindingFactor.Free()
+		assert.NoError(t, err)
+
+		jsn, err = blindedSecrets.CorrectnessProof.ToJSON()
+		assert.NoError(t, err)
+
+		err = blindedSecrets.CorrectnessProof.Free()
+		assert.NoError(t, err)
+
+		m = map[string]interface{}{}
+		err = json.Unmarshal(jsn, &m)
+		assert.NoError(t, err)
+
+		x, ok = m["c"].(string)
+		assert.True(t, ok)
+
+		i = new(big.Int)
+		_, ok = i.SetString(x, 10)
+		assert.True(t, ok)
+
 	})
 }
 
-func TestFreeNonCredentialSchema(t *testing.T) {
-	t.Run("FreeNonCredentialSchema", func(t *testing.T) {
-		var nonSchema unsafe.Pointer
-		err := FreeNonCredentialSchema(nonSchema)
-		assert.NotEmpty(t, err)
-	})
+func createBlindedSecrets(t *testing.T, credDef *CredentialDef, nonce *Nonce, vals map[string]interface{}) *BlindedCredentialSecrets {
+
+	values := createValues(t, vals)
+
+	blindedSecrets, err := BlindCredentialSecrets(credDef.PubKey, credDef.KeyCorrectnessProof, nonce, values)
+	assert.NoError(t, err)
+
+	return blindedSecrets
 }
 
-func TestFreeCredentialPrivateKey(t *testing.T) {
-	t.Run("FreeCredentialPrivateKey", func(t *testing.T) {
-		var privKey unsafe.Pointer
-		err := FreeCredentialPrivateKey(privKey)
-		assert.NotEmpty(t, err)
-	})
-}
+func createSignature(t *testing.T, fields []string, vals map[string]interface{}) (*CredentialSignature, *CredentialSignatureCorrectnessProof) {
+	var nonfields []string
+	var err error
 
-func TestFreeCredentialPublicKey(t *testing.T) {
-	t.Run("FreeCredentialPublicKey", func(t *testing.T) {
-		var pubKey unsafe.Pointer
-		err := FreeCredentialPublicKey(pubKey)
-		assert.NotEmpty(t, err)
-	})
-}
+	ms, err := NewMasterSecret()
+	assert.NoError(t, err)
+	js, err := ms.ToJSON()
+	assert.NoError(t, err)
+	m := struct {
+		MasterSecret string `json:"ms"`
+	}{}
+	err = json.Unmarshal(js, &m)
+	assert.NoError(t, err)
 
-func TestFreeCredentialKeyCorrectnessProof(t *testing.T) {
-	t.Run("FreeCredentialKeyCorrectnessProof", func(t *testing.T) {
-		var proof unsafe.Pointer
-		err := FreeCredentialSchema(proof)
-		assert.NotEmpty(t, err)
-	})
+	vals["master_secret"] = m.MasterSecret
+
+	nonce, err := NewNonce()
+	assert.NoError(t, err)
+
+	credDef := createCredentialDefinition(t, fields, nonfields)
+	blindedSecrets := createBlindedSecrets(t, credDef, nonce, vals)
+	values := createValues(t, vals)
+
+	signParams := NewSignatureParams()
+	signParams.ProverID = "did:sov:example1"
+	signParams.CredentialPubKey = credDef.PubKey
+	signParams.CredentialPrivKey = credDef.PrivKey
+	signParams.BlindedCredentialSecrets = blindedSecrets.Handle
+	signParams.BlindedCredentialSecretsCorrectnessProof = blindedSecrets.CorrectnessProof
+	signParams.CredentialNonce = nonce
+	signParams.CredentialValues = values
+
+	signParams.CredentialIssuanceNonce, err = NewNonce()
+	assert.NoError(t, err)
+
+	sig, sigCorrectnessProof, err := signParams.SignCredential()
+	assert.NoError(t, err)
+
+	err = values.Free()
+	assert.NoError(t, err)
+
+	return sig, sigCorrectnessProof
 }
