@@ -48,6 +48,17 @@ func TestNonceFromJSON(t *testing.T) {
 		assert.Empty(t, n)
 		assert.NotEmpty(t, err)
 	})
+
+	t.Run("Pass NonceToJson", func(t *testing.T) {
+		n, err := NewNonce()
+		assert.Empty(t, err)
+		assert.NotEmpty(t, n)
+
+
+		noncePtr, err := NonceFromJson(n)
+		assert.Empty(t, err)
+		assert.NotEmpty(t, noncePtr)
+	})
 }
 
 func TestCredentialKeyCorrectnessProofFromJSON(t *testing.T) {

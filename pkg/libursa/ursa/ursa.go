@@ -7,7 +7,6 @@ package ursa
 */
 import "C"
 import (
-	"fmt"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -34,7 +33,7 @@ func NewNonce() (*Nonce, error) {
 //NonceFromJson creates and returns nonce json
 func NonceFromJSON(jsn string) (*Nonce, error) {
 	var handle unsafe.Pointer
-	cjson := C.CString(fmt.Sprintf(`"%s"`, jsn))
+	cjson := C.CString(jsn)
 	defer C.free(unsafe.Pointer(cjson))
 
 	result := C.ursa_cl_nonce_from_json(cjson, &handle)
