@@ -12,30 +12,26 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Handle struct {
+	ptr unsafe.Pointer
+}
+
+type Nonce Handle
+
 //NewNonce creates a random nonce
-func NewNonce() (string, error) {
+func NewNonce() (*Nonce, error) {
 	var nonce unsafe.Pointer
-	defer C.free(nonce)
 
 	result := C.ursa_cl_new_nonce(&nonce)
 	if result.code != 0 {
-		return "", ursaError(C.GoString(result.message))
-	}
-	defer C.ursa_cl_nonce_free(nonce)
-
-	var d *C.char
-	defer C.free(unsafe.Pointer(d))
-
-	result = C.ursa_cl_nonce_to_json(nonce, &d)
-	if result.code != 0 {
-		return "", ursaError(C.GoString(result.message))
+		return nil, ursaError(C.GoString(result.message))
 	}
 
-	return C.GoString(d), nil
+	return &Nonce{nonce}, nil
 }
 
 //NonceFromJson creates and returns nonce json
-func NonceFromJson(jsn string) (unsafe.Pointer, error) {
+func NonceFromJSON(jsn string) (*Nonce, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(jsn)
 	defer C.free(unsafe.Pointer(cjson))
@@ -45,8 +41,31 @@ func NonceFromJson(jsn string) (unsafe.Pointer, error) {
 		return nil, ursaError(C.GoString(result.message))
 	}
 
-	return handle, nil
+	return &Nonce{handle}, nil
 }
+
+func (r *Nonce) ToJSON() ([]byte, error) {
+	var d *C.char
+	defer C.free(unsafe.Pointer(d))
+
+	result := C.ursa_cl_nonce_to_json(r.ptr, &d)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	out := []byte(C.GoString(d))
+	return out, nil
+}
+
+func (r *Nonce) Free() error {
+	result := C.ursa_cl_nonce_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
 // BlindedCredentialSecretsCorrectnessProofFromJSON creates and returns blinded credential secrets correctness proof json.
 func BlindedCredentialSecretsCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
 	var handle unsafe.Pointer
@@ -60,7 +79,6 @@ func BlindedCredentialSecretsCorrectnessProofFromJSON(jsn string) (unsafe.Pointe
 
 	return handle, nil
 }
-
 
 //CredentialKeyCorrectnessProofFromJSON creates and returns credential key correctness proof from json
 func CredentialKeyCorrectnessProofFromJSON(jsn string) (unsafe.Pointer, error) {
@@ -118,8 +136,11 @@ func CredentialPublicKeyFromJSON(jsn string) (unsafe.Pointer, error) {
 	return handle, nil
 }
 
+type NonCredentialSchemaBuilder Handle
+type NonCredentialSchemaHandle Handle
+
 //NonCredentialSchemaBuilderNew creates and returns non credential schema builder
-func NonCredentialSchemaBuilderNew() (unsafe.Pointer, error) {
+func NewNonCredentialSchemaBuilder() (*NonCredentialSchemaBuilder, error) {
 	var nonBuilder unsafe.Pointer
 
 	result := C.ursa_cl_non_credential_schema_builder_new(&nonBuilder)
@@ -127,15 +148,15 @@ func NonCredentialSchemaBuilderNew() (unsafe.Pointer, error) {
 		return nil, ursaError(C.GoString(result.message))
 	}
 
-	return nonBuilder, nil
+	return &NonCredentialSchemaBuilder{nonBuilder}, nil
 }
 
 //NonCredentialSchemaBuilderAddAttr adds new attribute to non credential schema
-func NonCredentialSchemaBuilderAddAttr(nonBuilder unsafe.Pointer, attr string) error {
+func (r *NonCredentialSchemaBuilder) AddAttr(attr string) error {
 	cAttr := C.CString(attr)
 	defer C.free(unsafe.Pointer(cAttr))
 
-	result := C.ursa_cl_non_credential_schema_builder_add_attr(nonBuilder, cAttr)
+	result := C.ursa_cl_non_credential_schema_builder_add_attr(r.ptr, cAttr)
 	if result.code != 0 {
 		return ursaError(C.GoString(result.message))
 	}
@@ -144,32 +165,45 @@ func NonCredentialSchemaBuilderAddAttr(nonBuilder unsafe.Pointer, attr string) e
 }
 
 //NonCredentialSchemaBuilderFinalize deallocates non_credential schema builder and returns non credential schema entity instead
-func NonCredentialSchemaBuilderFinalize(nonBuilder unsafe.Pointer) (unsafe.Pointer, error) {
+func (r *NonCredentialSchemaBuilder) Finalize() (*NonCredentialSchemaHandle, error) {
 	var nonSchema unsafe.Pointer
 
-	result := C.ursa_cl_non_credential_schema_builder_finalize(nonBuilder, &nonSchema)
+	result := C.ursa_cl_non_credential_schema_builder_finalize(r.ptr, &nonSchema)
 	if result.code != 0 {
 		return nil, ursaError(C.GoString(result.message))
 	}
 
-	return nonSchema, nil
+	return &NonCredentialSchemaHandle{nonSchema}, nil
 }
 
+//FreeNonCredentialSchema deallocates credential schema instance
+func (r *NonCredentialSchemaHandle) Free() error {
+	result := C.ursa_cl_non_credential_schema_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+type CredentialSchemaBuilder Handle
+type CredentialSchemaHandle Handle
+
 //CredentialSchemaBuilderNew creates and return credential schema entity builder
-func CredentialSchemaBuilderNew() (unsafe.Pointer, error) {
+func NewCredentialSchemaBuilder() (*CredentialSchemaBuilder, error) {
 	var builder unsafe.Pointer
 	result := C.ursa_cl_credential_schema_builder_new(&builder)
 	if result.code != 0 {
 		return nil, ursaError(C.GoString(result.message))
 	}
 
-	return builder, nil
+	return &CredentialSchemaBuilder{builder}, nil
 }
 
 //CredentialSchemaBuilderAddAttr adds new attribute to credential schema
-func CredentialSchemaBuilderAddAttr(builder unsafe.Pointer, field string) error {
+func (r *CredentialSchemaBuilder) AddAttr(field string) error {
 	cfield := C.CString(field)
-	result := C.ursa_cl_credential_schema_builder_add_attr(builder, cfield)
+	result := C.ursa_cl_credential_schema_builder_add_attr(r.ptr, cfield)
 	C.free(unsafe.Pointer(cfield))
 	if result.code != 0 {
 		return ursaError(C.GoString(result.message))
@@ -179,92 +213,116 @@ func CredentialSchemaBuilderAddAttr(builder unsafe.Pointer, field string) error 
 }
 
 //CredentialSchemaBuilderFinalize deallocates credential schema builder and return credential schema entity instead
-func CredentialSchemaBuilderFinalize(builder unsafe.Pointer) (unsafe.Pointer, error) {
+func (r *CredentialSchemaBuilder) Finalize() (*CredentialSchemaHandle, error) {
 	var schema unsafe.Pointer
 
-	result := C.ursa_cl_credential_schema_builder_finalize(builder, &schema)
+	result := C.ursa_cl_credential_schema_builder_finalize(r.ptr, &schema)
 	if result.code != 0 {
 		return nil, ursaError(C.GoString(result.message))
 	}
 
-	return schema, nil
+	return &CredentialSchemaHandle{schema}, nil
+}
+
+//Free deallocates credential schema instance
+func (r *CredentialSchemaHandle) Free() error {
+	result := C.ursa_cl_credential_schema_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+type CredentialDefPubKey Handle
+type CredentialDefPrivKey Handle
+type CredentialDefKeyCorrectnessProof Handle
+
+func (r *CredentialDefPubKey) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_credential_public_key_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *CredentialDefPubKey) Free() error {
+	result := C.ursa_cl_credential_public_key_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+func (r *CredentialDefPrivKey) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_credential_private_key_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *CredentialDefPrivKey) Free() error {
+	result := C.ursa_cl_credential_private_key_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+func (r *CredentialDefKeyCorrectnessProof) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_credential_key_correctness_proof_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *CredentialDefKeyCorrectnessProof) Free() error {
+	result := C.ursa_cl_credential_key_correctness_proof_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
 }
 
 type CredentialDef struct {
-	PubKey unsafe.Pointer
-	PrivKey unsafe.Pointer
-	KeyCorrectnessProof unsafe.Pointer
+	PubKey              *CredentialDefPubKey
+	PrivKey             *CredentialDefPrivKey
+	KeyCorrectnessProof *CredentialDefKeyCorrectnessProof
 }
 
 //NewCredentialDef creates and returns credential definition (public and private keys, correctness proof) entities
-func NewCredentialDef(schema, nonSchema unsafe.Pointer, revocation bool) (*CredentialDef, error) {
-	rev := C.bool(revocation)
-	defer C.free(unsafe.Pointer(&rev))
-
+func NewCredentialDef(schema *CredentialSchemaHandle, nonSchema *NonCredentialSchemaHandle, revocation bool) (*CredentialDef, error) {
 	var credpub, credpriv, credproof unsafe.Pointer
 
-	result := C.ursa_cl_issuer_new_credential_def(schema, nonSchema, rev, &credpub, &credpriv, &credproof)
+	result := C.ursa_cl_issuer_new_credential_def(schema.ptr, nonSchema.ptr, C.bool(revocation), &credpub, &credpriv, &credproof)
 	if result.code != 0 {
 		return nil, ursaError(C.GoString(result.message))
 	}
 
 	credDef := &CredentialDef{
-		PubKey: credpub,
-		PrivKey: credpriv,
-		KeyCorrectnessProof: credproof,
+		PubKey:              &CredentialDefPubKey{credpub},
+		PrivKey:             &CredentialDefPrivKey{credpriv},
+		KeyCorrectnessProof: &CredentialDefKeyCorrectnessProof{credproof},
 	}
 
 	return credDef, nil
-}
-
-//FreeCredentialSchema deallocates credential schema instance
-func FreeCredentialSchema(schema unsafe.Pointer) error {
-	result := C.ursa_cl_credential_schema_free(schema)
-	if result.code != 0 {
-		return ursaError(C.GoString(result.message))
-	}
-
-	return nil
-}
-
-//FreeNonCredentialSchema deallocates credential schema instance
-func FreeNonCredentialSchema(nonSchema unsafe.Pointer) error {
-	result := C.ursa_cl_non_credential_schema_free(nonSchema)
-	if result.code != 0 {
-		return ursaError(C.GoString(result.message))
-	}
-
-	return nil
-}
-
-//FreeCredentialPrivateKey deallocates credential private key instance
-func FreeCredentialPrivateKey(privKey unsafe.Pointer) error {
-	result := C.ursa_cl_credential_private_key_free(privKey)
-	if result.code != 0 {
-		return ursaError(C.GoString(result.message))
-	}
-
-	return nil
-}
-
-//FreeCredentialPublicKey deallocates credential public key instance
-func FreeCredentialPublicKey(pubKey unsafe.Pointer) error {
-	result := C.ursa_cl_credential_public_key_free(pubKey)
-	if result.code != 0 {
-		return ursaError(C.GoString(result.message))
-	}
-
-	return nil
-}
-
-//FreeCredentialKeyCorrectnessProof deallocates credential key correctness proof instance
-func FreeCredentialKeyCorrectnessProof(proof unsafe.Pointer) error {
-	result := C.ursa_cl_credential_key_correctness_proof_free(proof)
-	if result.code != 0 {
-		return ursaError(C.GoString(result.message))
-	}
-
-	return nil
 }
 
 func CorrectnessProofToJSON(credSignatureCorrectnessProof unsafe.Pointer) ([]byte, error) {
@@ -280,14 +338,14 @@ func CorrectnessProofToJSON(credSignatureCorrectnessProof unsafe.Pointer) ([]byt
 }
 
 type SignatureParams struct {
-	ProverID string
-	BlindedCredentialSecrets string
-	BlindedCredentialSecretsCorrectnessProof string
-	CredentialIssuanceNonce string
-	CredentialNonce string
-	CredentialValues unsafe.Pointer
-	CredentialPubKey string
-	CredentialPrivKey string
+	ProverID                                 string
+	BlindedCredentialSecrets                 *BlindedCredentialSecretsHandle
+	BlindedCredentialSecretsCorrectnessProof *BlindedCredentialSecretsCorrectnessProof
+	CredentialIssuanceNonce                  *Nonce
+	CredentialNonce                          *Nonce
+	CredentialValues                         *CredentialValues
+	CredentialPubKey                         *CredentialDefPubKey
+	CredentialPrivKey                        *CredentialDefPrivKey
 }
 
 //NewSignatureParams creates an empty instance of SignatureParams
@@ -295,64 +353,197 @@ func NewSignatureParams() *SignatureParams {
 	return &SignatureParams{}
 }
 
+type CredentialSignature Handle
+type CredentialSignatureCorrectnessProof Handle
+
+func CredentialSignatureFromJSON(jsn []byte) (*CredentialSignature, error) {
+	var handle unsafe.Pointer
+	cjson := C.CString(string(jsn))
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_credential_signature_from_json(cjson, &handle)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return &CredentialSignature{handle}, nil
+}
+
+func CredentialSignatureCorrectnessProofFromJSON(jsn []byte) (*CredentialSignatureCorrectnessProof, error) {
+	var handle unsafe.Pointer
+	cjson := C.CString(string(jsn))
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_signature_correctness_proof_from_json(cjson, &handle)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return &CredentialSignatureCorrectnessProof{handle}, nil
+}
+
 //SignCredential signs credential values with primary keys only
-func (r *SignatureParams) SignCredential() ([]byte, error) {
-	defer C.free(r.CredentialValues)
+func (r *SignatureParams) SignCredential() (*CredentialSignature, *CredentialSignatureCorrectnessProof, error) {
 	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
 
 	did := C.CString(r.ProverID)
 
-	blindedCredentialSecrets, err := BlindedCredentialSecretsFromJSON(r.BlindedCredentialSecrets)
-	if err != nil {
-		return nil, err
+	result := C.ursa_cl_issuer_sign_credential(
+		did,
+		r.BlindedCredentialSecrets.ptr,
+		r.BlindedCredentialSecretsCorrectnessProof.ptr,
+		r.CredentialNonce.ptr,
+		r.CredentialIssuanceNonce.ptr,
+		r.CredentialValues.ptr,
+		r.CredentialPubKey.ptr,
+		r.CredentialPrivKey.ptr,
+		&credSignature,
+		&credSignatureCorrectnessProof)
+	if result.code != 0 {
+		return nil, nil, ursaError(C.GoString(result.message))
 	}
 
-	blindedCredentialSecretsCorrectnessProof, err := BlindedCredentialSecretsCorrectnessProofFromJSON(r.BlindedCredentialSecretsCorrectnessProof)
-	if err != nil {
-		return nil, err
+	return &CredentialSignature{credSignature}, &CredentialSignatureCorrectnessProof{credSignatureCorrectnessProof}, nil
+}
+
+func (r *CredentialSignature) Free() error {
+	result := C.ursa_cl_credential_signature_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
 	}
 
-	credentialIssuanceNonce, err := NonceFromJson(r.CredentialIssuanceNonce)
-	if err != nil {
-		return nil, err
-	}
+	return nil
+}
 
-	credentialNonce, err := NonceFromJson(r.CredentialNonce)
-	if err != nil {
-		return nil, err
-	}
+func (r *CredentialSignature) ToJSON() ([]byte, error) {
+	var jsn *C.char
 
-	credentialPubKey, err := CredentialPublicKeyFromJSON(r.CredentialPubKey)
-	if err != nil {
-		return nil, err
-	}
-
-	credentialPrivKey, err := CredentialPrivateKeyFromJSON(r.CredentialPrivKey)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		C.free(unsafe.Pointer(did))
-		C.free(blindedCredentialSecrets)
-		C.free(blindedCredentialSecretsCorrectnessProof)
-		C.free(credentialIssuanceNonce)
-		C.free(credentialNonce)
-		C.free(credentialPubKey)
-		C.free(credentialPrivKey)
-	}()
-
-	result := C.ursa_cl_issuer_sign_credential(did, blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof,
-		credentialIssuanceNonce, credentialNonce, r.CredentialValues, credentialPubKey, credentialPrivKey, &credSignature, &credSignatureCorrectnessProof)
+	result := C.ursa_cl_credential_signature_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
 	if result.code != 0 {
 		return nil, ursaError(C.GoString(result.message))
 	}
-	var sigOut *C.char
-	result = C.ursa_cl_credential_signature_to_json(credSignature, &sigOut)
-	defer C.free(unsafe.Pointer(sigOut))
-	defer C.ursa_cl_credential_signature_free(credSignature)
 
-	return []byte(C.GoString(sigOut)), nil
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *CredentialSignatureCorrectnessProof) Free() error {
+	result := C.ursa_cl_signature_correctness_proof_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+func (r *CredentialSignatureCorrectnessProof) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_signature_correctness_proof_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+type BlindedCredentialSecretsHandle Handle
+type CredentialSecretsBlindingFactors Handle
+type BlindedCredentialSecretsCorrectnessProof Handle
+
+func (r *BlindedCredentialSecretsHandle) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_blinded_credential_secrets_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *BlindedCredentialSecretsHandle) Free() error {
+	result := C.ursa_cl_blinded_credential_secrets_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+func (r *CredentialSecretsBlindingFactors) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_credential_secrets_blinding_factors_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *CredentialSecretsBlindingFactors) Free() error {
+	result := C.ursa_cl_credential_secrets_blinding_factors_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+func (r *BlindedCredentialSecretsCorrectnessProof) ToJSON() ([]byte, error) {
+	var jsn *C.char
+
+	result := C.ursa_cl_blinded_credential_secrets_correctness_proof_to_json(r.ptr, &jsn)
+	defer C.free(unsafe.Pointer(jsn))
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(jsn)), nil
+}
+
+func (r *BlindedCredentialSecretsCorrectnessProof) Free() error {
+	result := C.ursa_cl_blinded_credential_secrets_correctness_proof_free(r.ptr)
+	if result.code != 0 {
+		return ursaError(C.GoString(result.message))
+	}
+
+	return nil
+}
+
+type BlindedCredentialSecrets struct {
+	Handle           *BlindedCredentialSecretsHandle
+	BlindingFactor   *CredentialSecretsBlindingFactors
+	CorrectnessProof *BlindedCredentialSecretsCorrectnessProof
+}
+
+func BlindCredentialSecrets(credentialPubKey *CredentialDefPubKey, keyCorrectnessProof *CredentialDefKeyCorrectnessProof, nonce *Nonce,
+	values *CredentialValues) (*BlindedCredentialSecrets, error) {
+
+	var blindedCredentialSecrets, blindedCredentialSecretsCorrectnessProof, credentialSecretsBlindingFactors unsafe.Pointer
+
+	result := C.ursa_cl_prover_blind_credential_secrets(
+		credentialPubKey.ptr,
+		keyCorrectnessProof.ptr,
+		values.ptr,
+		nonce.ptr,
+		&blindedCredentialSecrets,
+		&credentialSecretsBlindingFactors,
+		&blindedCredentialSecretsCorrectnessProof)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return &BlindedCredentialSecrets{
+		Handle:           &BlindedCredentialSecretsHandle{blindedCredentialSecrets},
+		BlindingFactor:   &CredentialSecretsBlindingFactors{credentialSecretsBlindingFactors},
+		CorrectnessProof: &BlindedCredentialSecretsCorrectnessProof{blindedCredentialSecretsCorrectnessProof},
+	}, nil
+
 }
 
 func ursaError(msg string) error {
