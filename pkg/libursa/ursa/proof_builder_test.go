@@ -48,7 +48,7 @@ func TestProofBuilder(t *testing.T) {
 		pb, err := NewProofBuilder()
 		assert.NoError(t, err)
 
-		err = pb.AddCommonAttribute("first_name")
+		err = pb.AddCommonAttribute("attr1")
 		assert.NoError(t, err)
 
 		subProofBuilder, err := NewSubProofRequestBuilder()

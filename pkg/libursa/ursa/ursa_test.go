@@ -28,7 +28,7 @@ func TestNewNonce(t *testing.T) {
 
 func TestNonceFromJSON(t *testing.T) {
 	t.Run("NonceFromJSON", func(t *testing.T) {
-		n, err := NonceFromJSON("123456")
+		n, err := NonceFromJSON("\"123456\"")
 		assert.NoError(t, err)
 
 		jsn, err := n.ToJSON()
@@ -49,21 +49,11 @@ func TestNonceFromJSON(t *testing.T) {
 		assert.NotEmpty(t, err)
 	})
 
-	t.Run("Pass NonceToJson", func(t *testing.T) {
-		n, err := NewNonce()
-		assert.Empty(t, err)
-		assert.NotEmpty(t, n)
-
-
-		noncePtr, err := NonceFromJson(n)
-		assert.Empty(t, err)
-		assert.NotEmpty(t, noncePtr)
-	})
 }
 
 func TestCredentialKeyCorrectnessProofFromJSON(t *testing.T) {
 	t.Run("CredentialKeyCorrectnessProofFromJSON", func(t *testing.T) {
-		correctnessProof, err := CredentialKeyCorrectnessProofFromJSON("bad string")
+		correctnessProof, err := CredentialKeyCorrectnessProofFromJSON([]byte("bad string"))
 		assert.NotEmpty(t, err)
 		assert.Empty(t, correctnessProof)
 	})
@@ -71,7 +61,7 @@ func TestCredentialKeyCorrectnessProofFromJSON(t *testing.T) {
 
 func TestBlindedCredentialSecretsCorrectnessProofFromJSON(t *testing.T) {
 	t.Run("BlindedCredentialSecretsCorrectnessProofFromJSON", func(t *testing.T) {
-		correctnessProof, err := BlindedCredentialSecretsCorrectnessProofFromJSON("should error")
+		correctnessProof, err := BlindedCredentialSecretsCorrectnessProofFromJSON([]byte("should error"))
 		assert.NotEmpty(t, err)
 		assert.Empty(t, correctnessProof)
 	})
@@ -79,7 +69,7 @@ func TestBlindedCredentialSecretsCorrectnessProofFromJSON(t *testing.T) {
 
 func TestBlindedCredentialSecretsFromJSON(t *testing.T) {
 	t.Run("BlindedCredentialSecretsFromJSON", func(t *testing.T) {
-		credentialSecrets, err := BlindedCredentialSecretsFromJSON("should error")
+		credentialSecrets, err := BlindedCredentialSecretsFromJSON([]byte("should error"))
 		assert.NotEmpty(t, err)
 		assert.Empty(t, credentialSecrets)
 	})
@@ -87,7 +77,7 @@ func TestBlindedCredentialSecretsFromJSON(t *testing.T) {
 
 func TestCredentialPrivateKeyFromJSON(t *testing.T) {
 	t.Run("CredentialPrivateKeyFromJSON", func(t *testing.T) {
-		credPK, err := CredentialPrivateKeyFromJSON("should error")
+		credPK, err := CredentialPrivateKeyFromJSON([]byte("should error"))
 		assert.NotEmpty(t, err)
 		assert.Empty(t, credPK)
 	})
@@ -96,7 +86,7 @@ func TestCredentialPrivateKeyFromJSON(t *testing.T) {
 
 func TestCredentialPublicKeyFromJSON(t *testing.T) {
 	t.Run("CredentialPublicKeyFromJSON", func(t *testing.T) {
-		credPubKey, err := CredentialPublicKeyFromJSON("should error")
+		credPubKey, err := CredentialPublicKeyFromJSON([]byte("should error"))
 		assert.NotEmpty(t, err)
 		assert.Empty(t, credPubKey)
 	})
@@ -117,7 +107,7 @@ func TestCredentialPublicKeyFromJSON(t *testing.T) {
          "z": "100575037796435700243943691767872077762220112870934582186886823285537691795467980464322681869583831432429347665667669133975628879262197248692545502086905748743995423632304369059689360454495382116638924389628546799896130668008079968423260749200925480431816778140444021097581135874096358823480704937431566913834271434378080880035702614465478985394549003527450740078010127638438842673809610113073564005959985169980061587662978274329234309998049948570801136494284842377726062084047642911007177430311933493884504451650733829453945961303725494919989506887915817649687007832321207466673596927594919855686300600431103249988571"
        }}`
 
-		credPubKey, err := CredentialPublicKeyFromJSON(pk)
+		credPubKey, err := CredentialPublicKeyFromJSON([]byte(pk))
 		assert.Empty(t, err)
 		assert.NotEmpty(t, credPubKey)
 	})
