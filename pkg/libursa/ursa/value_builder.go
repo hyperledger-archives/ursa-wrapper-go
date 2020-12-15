@@ -100,13 +100,15 @@ func (r *CredentialValues) Free() error {
 	return nil
 }
 
-func EncodeValue(raw interface{}) string {
-	var enc string
+func EncodeValue(val interface{}) (string, string) {
+	var raw, enc string
 
-	switch v := raw.(type) {
+	switch v := val.(type) {
 	case nil:
-		enc = ToEncodedNumber("None")
+		raw = "None"
+		enc = ToEncodedNumber(raw)
 	case string:
+		raw = v
 		i, err := strconv.Atoi(v)
 		if err == nil && (i <= math.MaxInt32 && i >= math.MinInt32) {
 			enc = v
@@ -115,36 +117,46 @@ func EncodeValue(raw interface{}) string {
 		}
 	case bool:
 		if v {
+			raw = "True"
 			enc = "1"
 		} else {
+			raw = "Fase"
 			enc = "0"
 		}
 	case int32:
-		enc = strconv.Itoa(int(v))
+		raw = strconv.Itoa(int(v))
+		enc = raw
 	case int64:
 		if v <= math.MaxInt32 && v >= math.MinInt32 {
-			enc = strconv.Itoa(int(v))
+			raw = strconv.Itoa(int(v))
+			enc = raw
 		} else {
-			enc = ToEncodedNumber(strconv.Itoa(int(v)))
+			raw = strconv.Itoa(int(v))
+			enc = ToEncodedNumber(raw)
 		}
 	case int:
 		if v <= math.MaxInt32 && v >= math.MinInt32 {
-			enc = strconv.Itoa(v)
+			raw = strconv.Itoa(v)
+			enc = raw
 		} else {
-			enc = ToEncodedNumber(strconv.Itoa(v))
+			raw = strconv.Itoa(v)
+			enc = ToEncodedNumber(raw)
 		}
 	case float64:
 		if v == 0 {
-			enc = ToEncodedNumber("0.0")
+			raw = "0.0"
+			enc = ToEncodedNumber(raw)
 		} else {
-			enc = ToEncodedNumber(fmt.Sprintf("%f", v))
+			raw = fmt.Sprintf("%f", v)
+			enc = ToEncodedNumber(raw)
 		}
 	default:
 		//Not sure what to do with Go and unknown types...  this works for now
-		enc = ToEncodedNumber(fmt.Sprintf("%v", v))
+		raw = fmt.Sprintf("%v", v)
+		enc = ToEncodedNumber(raw)
 	}
 
-	return enc
+	return raw, enc
 }
 
 func ToEncodedNumber(raw string) string {

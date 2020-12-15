@@ -120,7 +120,8 @@ func createValues(t *testing.T, values map[string]interface{}) *CredentialValues
 	assert.NoError(t, err)
 
 	for k, v := range values {
-		err = builder.AddDecKnown(k, EncodeValue(v))
+		_, enc := EncodeValue(v)
+		err = builder.AddDecKnown(k, enc)
 		assert.NoError(t, err)
 	}
 
