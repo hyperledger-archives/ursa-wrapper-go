@@ -268,6 +268,38 @@ func TestBlindCredentialSecrets(t *testing.T) {
 	})
 }
 
+func TestBlindedSecrets(t *testing.T) {
+	t.Run("round trip", func(t *testing.T) {
+		fields := []string{"attr1"}
+		nonfields := []string{"non-schema-attr1"}
+		vals := map[string]interface{}{
+			"attr1":            "val1",
+			"non-schema-attr1": "val2",
+		}
+
+		nonce, err := NewNonce()
+		assert.NoError(t, err)
+
+		credDef := createCredentialDefinition(t, fields, nonfields)
+		js, err := credDef.KeyCorrectnessProof.ToJSON()
+		assert.NoError(t, err)
+		assert.Contains(t, string(js), "\"attr1\"")
+		assert.Contains(t, string(js), "\"non-schema-attr1\"")
+
+		blindedSecrets := createBlindedSecrets(t, credDef, nonce, vals)
+
+		js, err = blindedSecrets.BlindingFactor.ToJSON()
+		assert.NoError(t, err)
+
+		assert.Contains(t, string(js), "\"v_prime\"")
+
+		bf, err := CredentialSecretsBlindingFactorsFromJSON(js)
+		assert.NoError(t, err)
+		assert.NotNil(t, bf)
+
+	})
+}
+
 func createBlindedSecrets(t *testing.T, credDef *CredentialDef, nonce *Nonce, vals map[string]interface{}) *BlindedCredentialSecrets {
 
 	values := createValues(t, vals)

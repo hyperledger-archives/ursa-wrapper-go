@@ -8,6 +8,7 @@ package ursa
 import "C"
 
 import (
+	"errors"
 	"unsafe"
 )
 
@@ -26,16 +27,20 @@ func NewProofVerifier() (*ProofVerifier, error) {
 }
 
 // Verify verifies proof and deallocates proof verifier.
-func (r *ProofVerifier) Verify(proof *ProofHandle, nonce *Nonce) (bool, error) {
+func (r *ProofVerifier) Verify(proof *ProofHandle, nonce *Nonce) error {
 	var verified C.bool
 
 	result := C.ursa_cl_proof_verifier_verify(r.ptr, proof.ptr, nonce.ptr, &verified)
 	if result.code != 0 {
-		return false, ursaError(C.GoString(result.message))
+		return ursaError(C.GoString(result.message))
 	}
 
 	out := bool(verified)
-	return out, nil
+	if !out {
+		return errors.New("invalid proof")
+	}
+
+	return nil
 }
 
 // AddCommonAttribute add a common attribute to the proof verifier

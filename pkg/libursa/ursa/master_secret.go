@@ -12,6 +12,7 @@ import (
 
 type MasterSecret Handle
 
+// NewMasterSecret creates a master secret
 func NewMasterSecret() (*MasterSecret, error) {
 	var ms unsafe.Pointer
 
@@ -23,7 +24,7 @@ func NewMasterSecret() (*MasterSecret, error) {
 	return &MasterSecret{ms}, nil
 }
 
-//MasterSecretFromJson creates and returns nonce json
+//MasterSecretFromJson creates and returns master secret from json
 func MasterSecretFromJSON(jsn []byte) (*MasterSecret, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -37,6 +38,7 @@ func MasterSecretFromJSON(jsn []byte) (*MasterSecret, error) {
 	return &MasterSecret{handle}, nil
 }
 
+// ToJSON returns json representation of master secret
 func (r *MasterSecret) ToJSON() ([]byte, error) {
 	var d *C.char
 	defer C.free(unsafe.Pointer(d))
@@ -50,6 +52,7 @@ func (r *MasterSecret) ToJSON() ([]byte, error) {
 	return out, nil
 }
 
+// Free deallocates master secret instance
 func (r *MasterSecret) Free() error {
 	result := C.ursa_cl_master_secret_free(r.ptr)
 	if result.code != 0 {

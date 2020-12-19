@@ -13,6 +13,7 @@ import (
 type ProofBuilder Handle
 type ProofHandle Handle
 
+// NewProofBuilder
 func NewProofBuilder() (*ProofBuilder, error) {
 	var builder unsafe.Pointer
 
@@ -24,6 +25,7 @@ func NewProofBuilder() (*ProofBuilder, error) {
 	return &ProofBuilder{builder}, nil
 }
 
+// ProofFromJSON creates and returns proof from JSON
 func ProofFromJSON(jsn []byte) (*ProofHandle, error) {
 	var builder unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -37,6 +39,7 @@ func ProofFromJSON(jsn []byte) (*ProofHandle, error) {
 	return &ProofHandle{builder}, nil
 }
 
+// AddCommonAttribute add a common attribute to the proof builder
 func (r *ProofBuilder) AddCommonAttribute(attr string) error {
 	cattr := C.CString(attr)
 	defer C.free(unsafe.Pointer(cattr))
@@ -49,6 +52,7 @@ func (r *ProofBuilder) AddCommonAttribute(attr string) error {
 	return nil
 }
 
+// AddSubProofRequest add a sub proof request to the proof builder
 func (r *ProofBuilder) AddSubProofRequest(subProof *SubProofRequestHandle, credSchema *CredentialSchemaHandle,
 	nonCredSchema *NonCredentialSchemaHandle, signature *CredentialSignature, values *CredentialValues, pubKey *CredentialDefPubKey) error {
 
@@ -61,6 +65,7 @@ func (r *ProofBuilder) AddSubProofRequest(subProof *SubProofRequestHandle, credS
 	return nil
 }
 
+// Finalize finalize the proof
 func (r *ProofBuilder) Finalize(nonce *Nonce) (*ProofHandle, error) {
 	var proof unsafe.Pointer
 
@@ -72,6 +77,7 @@ func (r *ProofBuilder) Finalize(nonce *Nonce) (*ProofHandle, error) {
 	return &ProofHandle{proof}, nil
 }
 
+// ToJSON returns JSON representation of proof
 func (r *ProofHandle) ToJSON() ([]byte, error) {
 	var d *C.char
 	defer C.free(unsafe.Pointer(d))
@@ -84,6 +90,7 @@ func (r *ProofHandle) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(d)), nil
 }
 
+// Free deallocates proof instance
 func (r *ProofHandle) Free() error {
 	result := C.ursa_cl_proof_free(r.ptr)
 	if result.code != 0 {
@@ -96,6 +103,7 @@ func (r *ProofHandle) Free() error {
 type SubProofRequestBuilder Handle
 type SubProofRequestHandle Handle
 
+// NewSubProofRequestBuilder creates and returns sub proof request entity builder
 func NewSubProofRequestBuilder() (*SubProofRequestBuilder, error) {
 	var builder unsafe.Pointer
 
@@ -108,6 +116,7 @@ func NewSubProofRequestBuilder() (*SubProofRequestBuilder, error) {
 
 }
 
+// AddPredicate adds predicate to sub proof request
 func (r *SubProofRequestBuilder) AddPredicate(attr, ptype string, value int32) error {
 	cattr := C.CString(attr)
 	defer C.free(unsafe.Pointer(cattr))
@@ -122,6 +131,7 @@ func (r *SubProofRequestBuilder) AddPredicate(attr, ptype string, value int32) e
 	return nil
 }
 
+// AddRevealedAttr adds new revealed attribute to sub proof request.
 func (r *SubProofRequestBuilder) AddRevealedAttr(attr string) error {
 	cattr := C.CString(attr)
 	defer C.free(unsafe.Pointer(cattr))
@@ -134,6 +144,7 @@ func (r *SubProofRequestBuilder) AddRevealedAttr(attr string) error {
 	return nil
 }
 
+// Finalize deallocates sub proof request builder and returns sub proof request entity instead.
 func (r *SubProofRequestBuilder) Finalize() (*SubProofRequestHandle, error) {
 	var proof unsafe.Pointer
 
@@ -145,6 +156,7 @@ func (r *SubProofRequestBuilder) Finalize() (*SubProofRequestHandle, error) {
 	return &SubProofRequestHandle{proof}, nil
 }
 
+// Free deallocates sub proof request instance
 func (r *SubProofRequestHandle) Free() error {
 	result := C.ursa_cl_sub_proof_request_free(r.ptr)
 	if result.code != 0 {
