@@ -719,7 +719,7 @@ struct ExternError ursa_cl_credential_secrets_blinding_factors_free(const void *
  * * `credential_secrets_blinding_factors_json` - Reference that contains credential secrets blinding factors json.
  * * `credential_secrets_blinding_factors_p` - Reference that will contain credential secrets blinding factors instance pointer.
  */
-struct ExternErrorrrorCode ursa_cl_credential_secrets_blinding_factors_from_json(const char *credential_secrets_blinding_factors_json,
+struct ExternError ursa_cl_credential_secrets_blinding_factors_from_json(const char *credential_secrets_blinding_factors_json,
                                                                 const void **credential_secrets_blinding_factors_p);
 
 /**

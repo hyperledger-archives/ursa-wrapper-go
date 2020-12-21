@@ -18,7 +18,7 @@ type Handle struct {
 
 type Nonce Handle
 
-//NewNonce creates a random nonce
+// NewNonce creates a random nonce
 func NewNonce() (*Nonce, error) {
 	var nonce unsafe.Pointer
 
@@ -30,7 +30,7 @@ func NewNonce() (*Nonce, error) {
 	return &Nonce{nonce}, nil
 }
 
-//NonceFromJson creates and returns nonce json
+// NonceFromJSON creates and returns nonce from json
 func NonceFromJSON(jsn string) (*Nonce, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(jsn)
@@ -44,6 +44,7 @@ func NonceFromJSON(jsn string) (*Nonce, error) {
 	return &Nonce{handle}, nil
 }
 
+// ToJSON returns JSON representation of nonce
 func (r *Nonce) ToJSON() ([]byte, error) {
 	var d *C.char
 	defer C.free(unsafe.Pointer(d))
@@ -57,6 +58,7 @@ func (r *Nonce) ToJSON() ([]byte, error) {
 	return out, nil
 }
 
+// Free deallocates the nonce
 func (r *Nonce) Free() error {
 	result := C.ursa_cl_nonce_free(r.ptr)
 	if result.code != 0 {
@@ -80,7 +82,7 @@ func BlindedCredentialSecretsCorrectnessProofFromJSON(jsn []byte) (*BlindedCrede
 	return &BlindedCredentialSecretsCorrectnessProof{handle}, nil
 }
 
-//CredentialKeyCorrectnessProofFromJSON creates and returns credential key correctness proof from json
+// CredentialKeyCorrectnessProofFromJSON creates and returns credential key correctness proof from json
 func CredentialKeyCorrectnessProofFromJSON(jsn []byte) (*CredentialDefKeyCorrectnessProof, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -94,7 +96,7 @@ func CredentialKeyCorrectnessProofFromJSON(jsn []byte) (*CredentialDefKeyCorrect
 	return &CredentialDefKeyCorrectnessProof{handle}, nil
 }
 
-//BlindedCredentialSecretsFromJSON creates and returns blinded credential secrets from json
+// BlindedCredentialSecretsFromJSON creates and returns blinded credential secrets from json
 func BlindedCredentialSecretsFromJSON(jsn []byte) (*BlindedCredentialSecretsHandle, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -108,7 +110,7 @@ func BlindedCredentialSecretsFromJSON(jsn []byte) (*BlindedCredentialSecretsHand
 	return &BlindedCredentialSecretsHandle{handle}, nil
 }
 
-//CredentialPrivateKeyFromJSON creates and returns credential private key from json
+// CredentialPrivateKeyFromJSON creates and returns credential private key from json
 func CredentialPrivateKeyFromJSON(jsn []byte) (*CredentialDefPrivKey, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -122,7 +124,7 @@ func CredentialPrivateKeyFromJSON(jsn []byte) (*CredentialDefPrivKey, error) {
 	return &CredentialDefPrivKey{handle}, nil
 }
 
-//CredentialPublicKeyFromJSON creates and returns credential public key from json
+// CredentialPublicKeyFromJSON creates and returns credential public key from json
 func CredentialPublicKeyFromJSON(jsn []byte) (*CredentialDefPubKey, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -139,7 +141,7 @@ func CredentialPublicKeyFromJSON(jsn []byte) (*CredentialDefPubKey, error) {
 type NonCredentialSchemaBuilder Handle
 type NonCredentialSchemaHandle Handle
 
-//NonCredentialSchemaBuilderNew creates and returns non credential schema builder
+// NewNonCredentialSchemaBuilder creates and returns non credential schema builder
 func NewNonCredentialSchemaBuilder() (*NonCredentialSchemaBuilder, error) {
 	var nonBuilder unsafe.Pointer
 
@@ -151,7 +153,7 @@ func NewNonCredentialSchemaBuilder() (*NonCredentialSchemaBuilder, error) {
 	return &NonCredentialSchemaBuilder{nonBuilder}, nil
 }
 
-//NonCredentialSchemaBuilderAddAttr adds new attribute to non credential schema
+// AddAttr adds new attribute to non credential schema
 func (r *NonCredentialSchemaBuilder) AddAttr(attr string) error {
 	cAttr := C.CString(attr)
 	defer C.free(unsafe.Pointer(cAttr))
@@ -164,7 +166,7 @@ func (r *NonCredentialSchemaBuilder) AddAttr(attr string) error {
 	return nil
 }
 
-//NonCredentialSchemaBuilderFinalize deallocates non_credential schema builder and returns non credential schema entity instead
+// Finalize deallocates non_credential schema builder and returns non credential schema entity instead
 func (r *NonCredentialSchemaBuilder) Finalize() (*NonCredentialSchemaHandle, error) {
 	var nonSchema unsafe.Pointer
 
@@ -176,7 +178,7 @@ func (r *NonCredentialSchemaBuilder) Finalize() (*NonCredentialSchemaHandle, err
 	return &NonCredentialSchemaHandle{nonSchema}, nil
 }
 
-//FreeNonCredentialSchema deallocates credential schema instance
+// Free deallocates credential schema instance
 func (r *NonCredentialSchemaHandle) Free() error {
 	result := C.ursa_cl_non_credential_schema_free(r.ptr)
 	if result.code != 0 {
@@ -189,7 +191,7 @@ func (r *NonCredentialSchemaHandle) Free() error {
 type CredentialSchemaBuilder Handle
 type CredentialSchemaHandle Handle
 
-//CredentialSchemaBuilderNew creates and return credential schema entity builder
+// NewCredentialSchemaBuilder creates and return credential schema entity builder
 func NewCredentialSchemaBuilder() (*CredentialSchemaBuilder, error) {
 	var builder unsafe.Pointer
 	result := C.ursa_cl_credential_schema_builder_new(&builder)
@@ -200,7 +202,7 @@ func NewCredentialSchemaBuilder() (*CredentialSchemaBuilder, error) {
 	return &CredentialSchemaBuilder{builder}, nil
 }
 
-//CredentialSchemaBuilderAddAttr adds new attribute to credential schema
+// AddAttr adds new attribute to credential schema
 func (r *CredentialSchemaBuilder) AddAttr(field string) error {
 	cfield := C.CString(field)
 	result := C.ursa_cl_credential_schema_builder_add_attr(r.ptr, cfield)
@@ -212,7 +214,7 @@ func (r *CredentialSchemaBuilder) AddAttr(field string) error {
 	return nil
 }
 
-//CredentialSchemaBuilderFinalize deallocates credential schema builder and return credential schema entity instead
+// Finalize deallocates credential schema builder and return credential schema entity instead
 func (r *CredentialSchemaBuilder) Finalize() (*CredentialSchemaHandle, error) {
 	var schema unsafe.Pointer
 
@@ -224,7 +226,7 @@ func (r *CredentialSchemaBuilder) Finalize() (*CredentialSchemaHandle, error) {
 	return &CredentialSchemaHandle{schema}, nil
 }
 
-//Free deallocates credential schema instance
+// Free deallocates credential schema instance
 func (r *CredentialSchemaHandle) Free() error {
 	result := C.ursa_cl_credential_schema_free(r.ptr)
 	if result.code != 0 {
@@ -238,6 +240,7 @@ type CredentialDefPubKey Handle
 type CredentialDefPrivKey Handle
 type CredentialDefKeyCorrectnessProof Handle
 
+// ToJSON creates and returns JSON representation of credential definition public key
 func (r *CredentialDefPubKey) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -250,6 +253,7 @@ func (r *CredentialDefPubKey) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates credential definition public key instance
 func (r *CredentialDefPubKey) Free() error {
 	result := C.ursa_cl_credential_public_key_free(r.ptr)
 	if result.code != 0 {
@@ -259,6 +263,7 @@ func (r *CredentialDefPubKey) Free() error {
 	return nil
 }
 
+// ToJSON creates and returns JSON representation of credential definition private key
 func (r *CredentialDefPrivKey) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -271,6 +276,7 @@ func (r *CredentialDefPrivKey) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates credential definition private key instance
 func (r *CredentialDefPrivKey) Free() error {
 	result := C.ursa_cl_credential_private_key_free(r.ptr)
 	if result.code != 0 {
@@ -280,6 +286,7 @@ func (r *CredentialDefPrivKey) Free() error {
 	return nil
 }
 
+// ToJSON creates and returns JSON representation of credential definition key correctness proof
 func (r *CredentialDefKeyCorrectnessProof) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -292,6 +299,7 @@ func (r *CredentialDefKeyCorrectnessProof) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates credential definition key correctness proof instance
 func (r *CredentialDefKeyCorrectnessProof) Free() error {
 	result := C.ursa_cl_credential_key_correctness_proof_free(r.ptr)
 	if result.code != 0 {
@@ -307,7 +315,7 @@ type CredentialDef struct {
 	KeyCorrectnessProof *CredentialDefKeyCorrectnessProof
 }
 
-//NewCredentialDef creates and returns credential definition (public and private keys, correctness proof) entities
+// NewCredentialDef creates and returns credential definition (public and private keys, correctness proof) entities
 func NewCredentialDef(schema *CredentialSchemaHandle, nonSchema *NonCredentialSchemaHandle, revocation bool) (*CredentialDef, error) {
 	var credpub, credpriv, credproof unsafe.Pointer
 
@@ -325,6 +333,7 @@ func NewCredentialDef(schema *CredentialSchemaHandle, nonSchema *NonCredentialSc
 	return credDef, nil
 }
 
+// CorrectnessProofToJSON creates and returns JSON representation of credential signature correctness proof
 func CorrectnessProofToJSON(credSignatureCorrectnessProof unsafe.Pointer) ([]byte, error) {
 	var proofOut *C.char
 
@@ -348,7 +357,7 @@ type SignatureParams struct {
 	CredentialPrivKey                        *CredentialDefPrivKey
 }
 
-//NewSignatureParams creates an empty instance of SignatureParams
+// NewSignatureParams creates an empty instance of SignatureParams
 func NewSignatureParams() *SignatureParams {
 	return &SignatureParams{}
 }
@@ -356,6 +365,7 @@ func NewSignatureParams() *SignatureParams {
 type CredentialSignature Handle
 type CredentialSignatureCorrectnessProof Handle
 
+// CredentialSignatureFromJSON creates and returns credential signature from json
 func CredentialSignatureFromJSON(jsn []byte) (*CredentialSignature, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -369,6 +379,7 @@ func CredentialSignatureFromJSON(jsn []byte) (*CredentialSignature, error) {
 	return &CredentialSignature{handle}, nil
 }
 
+// CredentialSignatureCorrectnessProofFromJSON creates and returns credential signature correctness proof from json
 func CredentialSignatureCorrectnessProofFromJSON(jsn []byte) (*CredentialSignatureCorrectnessProof, error) {
 	var handle unsafe.Pointer
 	cjson := C.CString(string(jsn))
@@ -382,7 +393,7 @@ func CredentialSignatureCorrectnessProofFromJSON(jsn []byte) (*CredentialSignatu
 	return &CredentialSignatureCorrectnessProof{handle}, nil
 }
 
-//SignCredential signs credential values with primary keys only
+// SignCredential signs credential values with primary keys only
 func (r *SignatureParams) SignCredential() (*CredentialSignature, *CredentialSignatureCorrectnessProof, error) {
 	var credSignature, credSignatureCorrectnessProof unsafe.Pointer
 
@@ -428,6 +439,7 @@ func (r *CredentialSignature) ProcessCredentialSignature(values *CredentialValue
 	return nil
 }
 
+// Free deallocates credential signature instance
 func (r *CredentialSignature) Free() error {
 	result := C.ursa_cl_credential_signature_free(r.ptr)
 	if result.code != 0 {
@@ -437,6 +449,7 @@ func (r *CredentialSignature) Free() error {
 	return nil
 }
 
+// ToJSON creates and returns JSON representation of credential signature
 func (r *CredentialSignature) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -449,6 +462,7 @@ func (r *CredentialSignature) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates credential signature correctness proof instance
 func (r *CredentialSignatureCorrectnessProof) Free() error {
 	result := C.ursa_cl_signature_correctness_proof_free(r.ptr)
 	if result.code != 0 {
@@ -458,6 +472,7 @@ func (r *CredentialSignatureCorrectnessProof) Free() error {
 	return nil
 }
 
+// ToJSON creates and returns JSON representation of credential signature correctness proof
 func (r *CredentialSignatureCorrectnessProof) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -474,6 +489,21 @@ type BlindedCredentialSecretsHandle Handle
 type CredentialSecretsBlindingFactors Handle
 type BlindedCredentialSecretsCorrectnessProof Handle
 
+// CredentialSecretsBlindingFactorsFromJSON creates and returns credential secrets blinding factors from json
+func CredentialSecretsBlindingFactorsFromJSON(jsn []byte) (*CredentialSecretsBlindingFactors, error) {
+	var handle unsafe.Pointer
+	cjson := C.CString(string(jsn))
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_credential_secrets_blinding_factors_from_json(cjson, &handle)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return &CredentialSecretsBlindingFactors{handle}, nil
+}
+
+// ToJSON creates and returns JSON representation of blinded credental secrets
 func (r *BlindedCredentialSecretsHandle) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -486,6 +516,7 @@ func (r *BlindedCredentialSecretsHandle) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates blinded credential secrets instance
 func (r *BlindedCredentialSecretsHandle) Free() error {
 	result := C.ursa_cl_blinded_credential_secrets_free(r.ptr)
 	if result.code != 0 {
@@ -495,6 +526,7 @@ func (r *BlindedCredentialSecretsHandle) Free() error {
 	return nil
 }
 
+// ToJSON creates and returns JSON representation of credential secrets blinding factors
 func (r *CredentialSecretsBlindingFactors) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -507,6 +539,7 @@ func (r *CredentialSecretsBlindingFactors) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates credential secrets blinding factors instance
 func (r *CredentialSecretsBlindingFactors) Free() error {
 	result := C.ursa_cl_credential_secrets_blinding_factors_free(r.ptr)
 	if result.code != 0 {
@@ -516,6 +549,7 @@ func (r *CredentialSecretsBlindingFactors) Free() error {
 	return nil
 }
 
+// ToJSON creates and returns JSON representation of blinded credential secrets correctness proof
 func (r *BlindedCredentialSecretsCorrectnessProof) ToJSON() ([]byte, error) {
 	var jsn *C.char
 
@@ -528,6 +562,7 @@ func (r *BlindedCredentialSecretsCorrectnessProof) ToJSON() ([]byte, error) {
 	return []byte(C.GoString(jsn)), nil
 }
 
+// Free deallocates blinded credential secrets correctness proof instance
 func (r *BlindedCredentialSecretsCorrectnessProof) Free() error {
 	result := C.ursa_cl_blinded_credential_secrets_correctness_proof_free(r.ptr)
 	if result.code != 0 {
@@ -543,6 +578,7 @@ type BlindedCredentialSecrets struct {
 	CorrectnessProof *BlindedCredentialSecretsCorrectnessProof
 }
 
+// BlindCredentialSecrets creates blinded credential secrets for given issuer key and master secret
 func BlindCredentialSecrets(credentialPubKey *CredentialDefPubKey, keyCorrectnessProof *CredentialDefKeyCorrectnessProof, nonce *Nonce,
 	values *CredentialValues) (*BlindedCredentialSecrets, error) {
 

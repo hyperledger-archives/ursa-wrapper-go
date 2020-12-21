@@ -18,7 +18,7 @@ import (
 type CredentialValuesBuilder Handle
 type CredentialValues Handle
 
-// NewValuesBuilder creates and returns credentials values entity builder
+// NewValueBuilder creates and returns credentials values entity builder
 func NewValueBuilder() (*CredentialValuesBuilder, error) {
 	var builder unsafe.Pointer
 
@@ -79,7 +79,7 @@ func (r *CredentialValuesBuilder) AddDecCommitment(attr, decValue, decBlindingFa
 	return nil
 }
 
-// FinalizeBuilder deallocates credential values builder and returns credential values entity instead
+// Finalize deallocates credential values builder and returns credential values entity instead
 func (r *CredentialValuesBuilder) Finalize() (*CredentialValues, error) {
 	var values unsafe.Pointer
 	result := C.ursa_cl_credential_values_builder_finalize(r.ptr, &values)
@@ -90,7 +90,7 @@ func (r *CredentialValuesBuilder) Finalize() (*CredentialValues, error) {
 	return &CredentialValues{values}, nil
 }
 
-// FreeCredentialValues deallocates credential values instance
+// Free deallocates credential values instance
 func (r *CredentialValues) Free() error {
 	result := C.ursa_cl_credential_values_free(r.ptr)
 	if result.code != 0 {
@@ -100,6 +100,7 @@ func (r *CredentialValues) Free() error {
 	return nil
 }
 
+// EncodeValue encodes any value into decimal representation
 func EncodeValue(val interface{}) (string, string) {
 	var raw, enc string
 
@@ -159,6 +160,7 @@ func EncodeValue(val interface{}) (string, string) {
 	return raw, enc
 }
 
+// ToEncodedNumber encodes string to decimal encoded value
 func ToEncodedNumber(raw string) string {
 	b := []byte(raw)
 	hasher := sha256.New()

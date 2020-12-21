@@ -98,8 +98,7 @@ func TestVerifierVerify(t *testing.T) {
 		err = verifier.AddSubProofRequest(subProofRequest, schema, nonSchema, credDef.PubKey)
 		assert.NoError(t, err)
 
-		verified, err := verifier.Verify(proof, proofRequestNonce)
+		err = verifier.Verify(proof, proofRequestNonce)
 		assert.NoError(t, err)
-		assert.True(t, verified)
 	})
 }
