@@ -7,6 +7,7 @@ package ursa
 */
 import "C"
 import (
+	"encoding/json"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -604,10 +605,18 @@ func BlindCredentialSecrets(credentialPubKey *CredentialDefPubKey, keyCorrectnes
 
 }
 
+type UrsaError struct {
+	Backtrace string
+	Message   string
+}
+
 func ursaError(msg string) error {
-	cMsg := C.CString(msg)
+	var cMsg *C.char
 	defer C.free(unsafe.Pointer(cMsg))
 
 	C.ursa_get_current_error(&cMsg)
-	return errors.Errorf("error from URSA: %s", C.GoString(cMsg))
+	var ursaError UrsaError
+	json.Unmarshal([]byte(C.GoString(cMsg)), &ursaError)
+
+	return errors.Errorf("error from URSA: %s", ursaError.Message)
 }
