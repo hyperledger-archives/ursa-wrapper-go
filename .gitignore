@@ -2,3 +2,4 @@ build
 .idea/
 coverage.txt
 *.out
+.vscode/

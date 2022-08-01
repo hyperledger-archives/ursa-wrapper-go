@@ -11,6 +11,22 @@ func TestNewValueBuilder(t *testing.T) {
 		builder, err := NewValueBuilder()
 		assert.Empty(t, err)
 		assert.NotEmpty(t, builder)
+
+		err = builder.AddDecHidden("master_secret", "122345")
+		assert.NoError(t, err)
+
+		vals, err := builder.Finalize()
+		assert.NoError(t, err)
+
+		str, err := vals.ToJSON()
+		assert.NoError(t, err)
+
+		err = vals.Free()
+		assert.NoError(t, err)
+
+		newVals, err := CredentialValuesFromJSON(str)
+		assert.NoError(t, err)
+		assert.NotNil(t, newVals)
 	})
 }
 

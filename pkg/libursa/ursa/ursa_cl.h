@@ -418,6 +418,26 @@ struct ExternError ursa_cl_credential_values_builder_finalize(const void *creden
 struct ExternError ursa_cl_credential_values_builder_new(const void **credential_values_builder_p);
 
 /**
+ * Creates and returns credential values json.
+ *
+ * Note: Credential values instance deallocation must be performed by calling ursa_cl_credential_values_free.
+ *
+ * # Arguments
+ * * `credential_values_json` - Reference that contains credential values json.
+ * * `credential_values_p` - Reference that will contain credential values instance pointer.
+ */
+struct ExternError ursa_cl_credential_values_from_json(const char *credential_values_json, const void **credential_values_p);
+
+/**
+ * Returns json representation of credential values.
+ *
+ * # Arguments
+ * * `credential_values` - Reference that contains credential values instance pointer.
+ * * `credential_values_json_p` - Reference that will contain credential values json.
+ */
+struct ExternError ursa_cl_credential_values_to_json(const void *credential_values, const char **credential_values_json_p);
+
+/**
  * Deallocates credential values instance.
  *
  * # Arguments

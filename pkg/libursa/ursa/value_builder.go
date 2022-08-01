@@ -30,6 +30,20 @@ func NewValueBuilder() (*CredentialValuesBuilder, error) {
 	return &CredentialValuesBuilder{builder}, nil
 }
 
+// CredentialValuesFromJSON creates and returns credential values from JSON
+func CredentialValuesFromJSON(jsn []byte) (*CredentialValues, error) {
+	var ptr unsafe.Pointer
+	cjson := C.CString(string(jsn))
+	defer C.free(unsafe.Pointer(cjson))
+
+	result := C.ursa_cl_credential_values_from_json(cjson, &ptr)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return &CredentialValues{ptr}, nil
+}
+
 // AddDecHidden adds new hidden attribute dec_value to credential values map
 func (r *CredentialValuesBuilder) AddDecHidden(attr, decValue string) error {
 	cattr := C.CString(attr)
@@ -98,6 +112,19 @@ func (r *CredentialValues) Free() error {
 	}
 
 	return nil
+}
+
+// ToJSON returns JSON representation of credential values
+func (r *CredentialValues) ToJSON() ([]byte, error) {
+	var d *C.char
+	defer C.free(unsafe.Pointer(d))
+
+	result := C.ursa_cl_credential_values_to_json(r.ptr, &d)
+	if result.code != 0 {
+		return nil, ursaError(C.GoString(result.message))
+	}
+
+	return []byte(C.GoString(d)), nil
 }
 
 // EncodeValue encodes any value into decimal representation
