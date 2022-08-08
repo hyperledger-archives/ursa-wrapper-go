@@ -2,47 +2,46 @@ name: Build
 on: [ push, pull_request ]
 
 jobs:
-# TODO: enable back once fixing the secrets
-#  workflow-setup:
-#    runs-on: ubuntu-latest
-#    outputs:
-#      CACHE_KEY_IMAGE: ${{ steps.cache.outputs.CACHE_KEY_IMAGE }}
-#    steps:
-#      - name: Git checkout
-#        uses: actions/checkout@v2
-#      - name: Set outputs
-#        id: cache
-#        run: |
-#          echo "::set-output name=CACHE_KEY_IMAGE::${{ hashFiles('.github/workflows/Dockerfile') }}"
+ workflow-setup:
+   runs-on: ubuntu-latest
+   outputs:
+     CACHE_KEY_IMAGE: ${{ steps.cache.outputs.CACHE_KEY_IMAGE }}
+   steps:
+     - name: Git checkout
+       uses: actions/checkout@v2
+     - name: Set outputs
+       id: cache
+       run: |
+         echo "::set-output name=CACHE_KEY_IMAGE::${{ hashFiles('.github/workflows/Dockerfile') }}"
 
-#  build-image:
-#    needs: workflow-setup
-#    runs-on: ubuntu-latest
-#    env:
-#      DOCKER_BUILDKIT: 1
-#      CACHE_KEY_IMAGE: ${{ needs.workflow-setup.outputs.CACHE_KEY_IMAGE }}
-#    steps:
-#      - name: Git checkout
-#        uses: actions/checkout@v2
-#      - name: Try load from cache.
-#        id: cache-image
-#        uses: actions/cache@v2
-#        with:
-#          path: ${GITHUB_WORKSPACE}/cache
-#          key: ${{ env.CACHE_KEY_IMAGE}}
-#      - name: If NOT found in cache, build and push image.
-#        if: steps.cache-image.outputs.cache-hit != 'true'
-#        run: |
-#          echo ${{ secrets.CR_PAT }} | docker login ghcr.io --username ${{ secrets.CR_USER }} --password-stdin
-#          docker build -f .github/workflows/Dockerfile --no-cache -t ${GITHUB_REPOSITORY}/uwg-build:${{ env.CACHE_KEY_IMAGE }} .
-#          docker tag ${GITHUB_REPOSITORY}/uwg-build:${{ env.CACHE_KEY_IMAGE }} ghcr.io/${GITHUB_REPOSITORY}/uwg-build:latest
-#          docker push ghcr.io/${GITHUB_REPOSITORY}/uwg-build:latest
-#          mkdir -p ${GITHUB_WORKSPACE}/cache
-#          touch ${GITHUB_WORKSPACE}/cache/${{ env.CACHE_KEY_IMAGE }}
+ build-image:
+   needs: workflow-setup
+   runs-on: ubuntu-latest
+   env:
+     DOCKER_BUILDKIT: 1
+     CACHE_KEY_IMAGE: ${{ needs.workflow-setup.outputs.CACHE_KEY_IMAGE }}
+   steps:
+     - name: Git checkout
+       uses: actions/checkout@v2
+     - name: Try load from cache.
+       id: cache-image
+       uses: actions/cache@v2
+       with:
+         path: ${GITHUB_WORKSPACE}/cache
+         key: ${{ env.CACHE_KEY_IMAGE}}
+     - name: If NOT found in cache, build and push image.
+       if: steps.cache-image.outputs.cache-hit != 'true'
+       run: |
+         echo ${{ secrets.CR_PAT }} | docker login ghcr.io --username ${{ secrets.CR_USER }} --password-stdin
+         docker build -f .github/workflows/Dockerfile --no-cache -t ${GITHUB_REPOSITORY}/uwg-build:${{ env.CACHE_KEY_IMAGE }} .
+         docker tag ${GITHUB_REPOSITORY}/uwg-build:${{ env.CACHE_KEY_IMAGE }} ghcr.io/${GITHUB_REPOSITORY}/uwg-build:latest
+         docker push ghcr.io/${GITHUB_REPOSITORY}/uwg-build:latest
+         mkdir -p ${GITHUB_WORKSPACE}/cache
+         touch ${GITHUB_WORKSPACE}/cache/${{ env.CACHE_KEY_IMAGE }}
         
   test:
     name: Test using Ursa
-    # needs: build-image
+    needs: build-image
     runs-on: ubuntu-20.04
     container:
      image: ghcr.io/${{ github.repository }}/uwg-build
