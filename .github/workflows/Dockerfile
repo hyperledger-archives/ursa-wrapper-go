@@ -45,13 +45,13 @@ RUN cd /usr/lib/x86_64-linux-gnu \
 
 RUN git clone https://github.com/hyperledger/ursa.git \
      && cd ursa \
-     && git checkout bbs-v0.4.0 \
+     && cd libursa \
      && cargo build --release \
      && cp target/release/*.so /usr/local/lib/
 
 RUN git clone https://github.com/mattrglobal/ffi-bbs-signatures.git \
      && cd ffi-bbs-signatures \
-     && git checkout master \
+     && git checkout 6fe88357938f144c43f67085b1c3c31b6656f39f \
      && cargo build --release \
      && cp target/release/libbbs.so /usr/local/lib/
 
